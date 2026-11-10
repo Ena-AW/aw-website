@@ -1,0 +1,485 @@
+/* =========================================================================
+   ATLEAN WORLD · HOMEPAGE
+   Tudo está limitado a .aw-home. Os azuis da marca (paleta nova) servem para
+   fundos e detalhes; o texto usa tons mais escuros da mesma cor, que passam
+   o contraste AA.
+   ========================================================================= */
+
+html:has(.aw-home) { scroll-padding-top: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.aw-home) { scroll-behavior: smooth; }
+}
+
+.aw-home {
+  /* paleta da marca */
+  --aw-navy:  #193360;
+  --aw-mid:   #6e87b2;
+  --aw-light: #b9cfea;
+  --aw-pale:  #d7dff2;
+  --aw-tint:  #f4f6fc;
+  --aw-white: #ffffff;
+
+  /* tons para texto (mesma cor, mais escuros) */
+  --aw-ink:   #193360;   /* 12,5:1 sobre branco */
+  --aw-body:  #34496f;   /*  9,0:1 sobre branco · 8,4:1 sobre tint */
+  --aw-muted: #4f668c;   /*  5,8:1 sobre branco · 5,4:1 sobre tint */
+  --aw-focus: #193360;
+
+  /* medidas */
+  --aw-header: var(--site-header, 90px);  /* altura do header partilhado (site.css) */
+  --aw-max: 1240px;
+  --aw-gutter: clamp(1.25rem, 4.5vw, 3.5rem);
+  --aw-rail-pad: max(var(--aw-gutter), calc((100% - var(--aw-max)) / 2));
+
+  /* tipografia: fonte do sistema (cobre latim, grego e cirílico) */
+  --aw-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  /* movimento: mola criticamente amortecida (damping 1.0, sem overshoot) */
+  --aw-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --aw-dur: 0.6s;
+  --aw-dur-fast: 0.4s;
+
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-x: clip;
+  color-scheme: light;
+  font-family: var(--aw-font);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--aw-body);
+  background: var(--aw-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  .aw-home {
+    --aw-ease: linear(0, 0.0369, 0.1219, 0.2275, 0.3374, 0.4422, 0.5372, 0.6204, 0.6916, 0.7513, 0.8009, 0.8414, 0.8743, 0.9008, 0.922, 0.9389, 0.9523, 0.9628, 0.9711, 0.9776, 0.9826, 0.9866, 0.9897, 0.992, 0.9939, 0.9953, 0.9964, 0.9972, 0.9979, 0.9984, 1);
+  }
+}
+
+/* ---- reset local ---- */
+.aw-home *, .aw-home *::before, .aw-home *::after { box-sizing: border-box; }
+.aw-home :where(h1, h2, h3, p, figure, blockquote, ul) { margin: 0; padding: 0; }
+.aw-home :where(ul) { list-style: none; }
+.aw-home :where(h1, h2, h3) { text-wrap: balance; }
+.aw-home :is(.aw-hero__title, .aw-hero__sub, .aw-statement__text, .aw-title, .aw-lead, .aw-job__title,
+  .aw-dest__hello, .aw-dest__country, .aw-dest__text, .aw-trust__name, .aw-trust__text,
+  .aw-quote__text, .aw-quote__name, .aw-quote__meta, .aw-post__title, .aw-follow__text, .aw-posts__msg) {
+  margin: 0; font-family: var(--aw-font); font-weight: 400; font-style: normal;
+  text-transform: none; letter-spacing: normal; color: var(--aw-body);
+}
+.aw-home :where(p) { text-wrap: pretty; }
+.aw-home img, .aw-home video, .aw-home svg { display: block; max-width: 100%; }
+.aw-home a, .aw-home a:hover, .aw-home a:focus, .aw-home a:active { color: inherit; text-decoration: none; }
+.aw-home :focus-visible { outline: 3px solid var(--aw-focus); outline-offset: 3px; }
+
+.aw-home .aw-wrap { width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin-inline: auto; }
+.aw-home .aw-vh {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.aw-home section { scroll-margin-top: var(--aw-header); }
+
+/* ---- escala tipográfica: o tracking fecha com o tamanho, o corpo fica a 0 ---- */
+.aw-home .aw-title {
+  font-size: clamp(2rem, 1.1rem + 2.8vw, 3.25rem);
+  line-height: 1.08; letter-spacing: -0.026em; font-weight: 650; color: var(--aw-ink);
+}
+.aw-home .aw-lead {
+  margin-top: 0.75rem;
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  line-height: 1.45; letter-spacing: -0.008em; color: var(--aw-muted); max-width: 38rem;
+}
+
+/* ---- botões e ligações ---- */
+.aw-home .aw-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3rem; padding: 0.8em 1.6em; border: 0; border-radius: 999px;
+  font: inherit; font-size: 1.0625rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em;
+  color: #fff; background: var(--aw-navy); white-space: nowrap;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-home .aw-btn:hover, .aw-home .aw-btn:focus { color: #fff; background: #0f2347; }
+.aw-home .aw-btn:active { transform: scale(0.97); }
+.aw-home .aw-btn--light { color: var(--aw-navy); background: #fff; }
+.aw-home .aw-btn--light:hover, .aw-home .aw-btn--light:focus { color: var(--aw-navy); background: var(--aw-pale); }
+
+.aw-home .aw-link {
+  font-weight: 600; color: var(--aw-ink);
+  text-decoration: underline; text-decoration-thickness: 0.07em; text-underline-offset: 0.25em;
+  touch-action: manipulation;
+}
+.aw-home .aw-link:hover, .aw-home .aw-link:focus { color: var(--aw-ink); text-decoration-thickness: 0.12em; }
+
+/* =========================================================================
+   1. HERO · a frase da marca é o título; o vídeo fica por baixo
+   ========================================================================= */
+.aw-home .aw-hero {
+  --aw-focus: #fff;
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-end;
+  min-height: 32rem;
+  height: calc(100vh - var(--aw-header));
+  height: calc(100svh - var(--aw-header));
+  max-height: 62rem;
+  color: #fff;
+  background: linear-gradient(140deg, #12264a 0%, #254477 55%, #4d6a9f 100%);   /* enquanto o vídeo carrega */
+}
+.aw-home .aw-hero__video {
+  position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover;
+}
+.aw-home .aw-hero__scrim {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(25, 51, 96, 0.14) 0%, rgba(25, 51, 96, 0) 24%,
+    rgba(25, 51, 96, 0.62) 58%, rgba(25, 51, 96, 0.88) 100%);
+}
+.aw-home .aw-hero__inner {
+  width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin: 0 auto;
+  padding-bottom: clamp(2rem, 5.5vw, 5rem);
+}
+.aw-home .aw-hero__title {
+  color: #fff;
+  font-size: clamp(2.6rem, 0.8rem + 7vw, 6.5rem);
+  line-height: 1.02; letter-spacing: -0.035em; font-weight: 700;
+}
+.aw-home .aw-hero__title span { display: block; }
+.aw-home .aw-hero__sub {
+  margin-top: 1.25rem; max-width: 34rem;
+  font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.3125rem);
+  line-height: 1.4; letter-spacing: -0.008em; color: rgba(255, 255, 255, 0.94);
+}
+.aw-home .aw-hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; margin-top: 2rem; }
+.aw-home .aw-hero__more {
+  font-weight: 600; font-size: 1.0625rem; color: #fff;
+  text-decoration: underline; text-decoration-thickness: 0.07em; text-underline-offset: 0.25em;
+}
+.aw-home .aw-hero__more:hover, .aw-home .aw-hero__more:focus { color: #fff; text-decoration-thickness: 0.12em; }
+
+/* controlo de pausa: vidro leve sobre o vídeo, com o rebordo de cima a apanhar luz */
+.aw-home button.aw-hero__toggle {
+  position: absolute; right: var(--aw-gutter); top: 1rem;
+  width: 2.75rem; height: 2.75rem; margin: 0; padding: 0;
+  display: grid; place-items: center; border: 0; border-radius: 50%;
+  color: #fff; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(18px) saturate(180%); backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease);
+}
+@media (min-width: 43.75rem) {
+  .aw-home button.aw-hero__toggle { top: auto; bottom: clamp(1.25rem, 3vw, 2.5rem); }
+}
+.aw-home button.aw-hero__toggle:hover, .aw-home button.aw-hero__toggle:focus { color: #fff; background: rgba(255, 255, 255, 0.28); }
+.aw-home button.aw-hero__toggle:active { transform: scale(0.94); }
+.aw-home .aw-hero__toggle .aw-i-play { display: none; }
+.aw-home .aw-hero__toggle[data-state="paused"] .aw-i-play { display: block; }
+.aw-home .aw-hero__toggle[data-state="paused"] .aw-i-pause { display: none; }
+.aw-home .aw-hero.is-video-failed .aw-hero__toggle { display: none; }
+
+/* a única animação "de entrada" da página: o título sobe e o resto segue */
+@keyframes aw-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes aw-fade { from { opacity: 0; } to { opacity: 1; } }
+.aw-home .aw-hero__title span,
+.aw-home .aw-hero__sub,
+.aw-home .aw-hero__actions { animation: aw-rise 0.9s var(--aw-ease) both; }
+.aw-home .aw-hero__title span:nth-child(2) { animation-delay: 0.08s; }
+.aw-home .aw-hero__sub { animation-delay: 0.22s; }
+.aw-home .aw-hero__actions { animation-delay: 0.32s; }
+
+/* =========================================================================
+   2. QUEM SOMOS · uma frase, sem decoração à volta
+   ========================================================================= */
+.aw-home .aw-statement { padding: clamp(5rem, 9vw, 10rem) 0 clamp(2.5rem, 5vw, 5rem); }
+.aw-home .aw-statement__text {
+  max-width: 20em;
+  font-size: clamp(1.75rem, 0.9rem + 3.4vw, 3.75rem);
+  line-height: 1.1; letter-spacing: -0.028em; font-weight: 600; color: var(--aw-ink);
+  text-wrap: balance;
+}
+
+/* =========================================================================
+   3. VAGAS EM DESTAQUE · a língua vem primeiro, como na vida real
+   ========================================================================= */
+.aw-home .aw-jobs { padding: clamp(2.5rem, 5vw, 5rem) 0 clamp(5rem, 9vw, 9rem); }
+.aw-home .aw-jobs__head {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 1.5rem 3rem; margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+.aw-home .aw-jobs__list { border-top: 1px solid var(--aw-pale); }
+.aw-home .aw-job {
+  position: relative; isolation: isolate;
+  display: grid; grid-template-columns: minmax(10rem, 17rem) minmax(0, 1fr) auto;
+  align-items: center; gap: 0.5rem 2rem;
+  padding: clamp(1.25rem, 2.4vw, 2rem) 0; border-bottom: 1px solid var(--aw-pale);
+  color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.aw-home .aw-job::before {   /* o fundo do hover ultrapassa a coluna: sem caixas, sem limites */
+  content: ""; position: absolute; z-index: -1; inset: 0 calc(var(--aw-gutter) * -0.5);
+  border-radius: 1.25rem; background: var(--aw-tint); opacity: 0;
+  transition: opacity var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-home .aw-job:hover::before, .aw-home .aw-job:focus-visible::before { opacity: 1; }
+.aw-home .aw-job:active::before { opacity: 1; background: var(--aw-pale); }
+.aw-home .aw-job__lang {
+  font-size: clamp(1.5rem, 1rem + 1.8vw, 2.5rem);
+  line-height: 1.05; letter-spacing: -0.028em; font-weight: 650; color: var(--aw-ink);
+}
+.aw-home .aw-job__title {
+  font-size: 1.1875rem; line-height: 1.35; letter-spacing: -0.012em; font-weight: 500; color: var(--aw-ink);
+}
+.aw-home .aw-job__end { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+.aw-home .aw-job__place { font-size: 1rem; color: var(--aw-muted); white-space: nowrap; }
+.aw-home .aw-job__chev { flex: none; color: var(--aw-ink); transition: transform var(--aw-dur-fast) var(--aw-ease); }
+.aw-home .aw-job:hover .aw-job__chev, .aw-home .aw-job:focus-visible .aw-job__chev { transform: translateX(4px); }
+@media (max-width: 43.6875rem) {
+  .aw-home .aw-job { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "lang chev" "title title" "place place"; }
+  .aw-home .aw-job__lang { grid-area: lang; }
+  .aw-home .aw-job__title { grid-area: title; }
+  .aw-home .aw-job__end { display: contents; }
+  .aw-home .aw-job__place { grid-area: place; }
+  .aw-home .aw-job__chev { grid-area: chev; }
+}
+.aw-home .aw-jobs__list[aria-busy="true"] { min-height: 14rem; }   /* reserva o espaço enquanto as vagas carregam */
+
+/* =========================================================================
+   4. DESTINOS · cada país recebe-te na língua dele
+   Por defeito (toque / ecrãs pequenos): carrossel nativo com snap.
+   Com rato num ecrã largo: faixa de painéis que se abre ao passar/focar.
+   ========================================================================= */
+.aw-home .aw-dests-sec { padding-top: clamp(1rem, 2vw, 2rem); background: var(--aw-white); }
+.aw-home .aw-dests__head { margin-bottom: clamp(2rem, 4vw, 3.5rem); }
+.aw-home .aw-dests {
+  --aw-focus: #fff;
+  display: flex; gap: 0.875rem; overflow-x: auto;
+  padding: 0 var(--aw-rail-pad) 1rem; scroll-padding-inline: var(--aw-rail-pad);
+  scroll-snap-type: x proximity; overscroll-behavior-x: contain;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.aw-home .aw-dests::-webkit-scrollbar { display: none; }
+.aw-home .aw-dest {
+  position: relative; isolation: isolate; overflow: hidden; container-type: inline-size;
+  flex: 0 0 min(80vw, 22rem); height: 28rem; border-radius: 1.75rem;
+  scroll-snap-align: start; background: var(--aw-navy); color: #fff;
+}
+.aw-home .aw-dest__link {
+  position: absolute; inset: 0; display: flex; align-items: flex-end; color: #fff;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.aw-home .aw-dest__link:hover, .aw-home .aw-dest__link:focus { color: #fff; }
+.aw-home .aw-dest__link:focus-visible { outline-offset: -6px; }
+.aw-home .aw-dest__img {
+  position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; max-width: none; object-fit: cover;
+  transition: transform var(--aw-dur) var(--aw-ease);
+}
+.aw-home .aw-dest__scrim {
+  position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(to bottom,
+    rgba(25, 51, 96, 0.2) 0%, rgba(25, 51, 96, 0) 30%,
+    rgba(25, 51, 96, 0.64) 62%, rgba(25, 51, 96, 0.9) 100%);
+}
+.aw-home .aw-dest__body { width: 100%; padding: clamp(1rem, 7cqw, 2rem); }
+.aw-home .aw-dest__hello {
+  font-size: clamp(1.25rem, 1rem + 1.4vw, 2.5rem);                 /* alternativa sem container queries */
+  font-size: clamp(1.2rem, 9.4cqw, 3.25rem);                       /* cresce com o painel */
+  line-height: 1.05; letter-spacing: -0.025em; font-weight: 700; white-space: nowrap; color: #fff;
+}
+.aw-home .aw-dest__country {
+  margin-top: 0.35rem; font-size: 1.125rem; line-height: 1.25; letter-spacing: -0.01em; font-weight: 600; color: #fff;
+}
+.aw-home .aw-dest__more > div { min-height: 0; }
+.aw-home .aw-dest__text {
+  margin-top: 0.75rem; max-width: 21rem; font-size: 1.0625rem; line-height: 1.45; color: rgba(255, 255, 255, 0.95);
+}
+.aw-home .aw-dest__cta {
+  display: inline-block; margin-top: 1rem; font-weight: 600; font-size: 1rem;
+  text-decoration: underline; text-decoration-thickness: 0.07em; text-underline-offset: 0.25em;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 56.25rem) {
+  .aw-home .aw-dests {
+    gap: 0; overflow: visible; padding: 0; scroll-snap-type: none;
+    height: clamp(32rem, 78vh, 46rem);
+  }
+  .aw-home .aw-dest {
+    flex: 1 1 0; min-width: 0; height: auto; border-radius: 0;
+    transition: flex-grow var(--aw-dur) var(--aw-ease);
+  }
+  /* estado "aberto": com o rato, com o teclado, ou o primeiro quando nada está ativo */
+  .aw-home .aw-dest:hover,
+  .aw-home .aw-dest:has(a:focus-visible),
+  .aw-home .aw-dests:not(:hover):not(:has(a:focus-visible)) .aw-dest:first-child { flex-grow: 3.4; }
+
+  .aw-home .aw-dest__more {
+    display: grid; grid-template-rows: 0fr; opacity: 0;
+    transition: grid-template-rows var(--aw-dur) var(--aw-ease), opacity var(--aw-dur-fast) var(--aw-ease);
+  }
+  .aw-home .aw-dest__more > div { overflow: hidden; width: clamp(15rem, 24vw, 21rem); }   /* largura fixa: o texto não reflui a meio da animação */
+  .aw-home .aw-dest:hover .aw-dest__more,
+  .aw-home .aw-dest:has(a:focus-visible) .aw-dest__more,
+  .aw-home .aw-dests:not(:hover):not(:has(a:focus-visible)) .aw-dest:first-child .aw-dest__more { grid-template-rows: 1fr; opacity: 1; }
+
+  .aw-home .aw-dest:hover .aw-dest__img,
+  .aw-home .aw-dest:has(a:focus-visible) .aw-dest__img,
+  .aw-home .aw-dests:not(:hover):not(:has(a:focus-visible)) .aw-dest:first-child .aw-dest__img { transform: scale(1.04); }
+}
+
+/* =========================================================================
+   5. CONFIANÇA · quatro afirmações, sempre visíveis
+   ========================================================================= */
+.aw-home .aw-trust { padding: clamp(5rem, 9vw, 9rem) 0; }
+.aw-home .aw-trust__grid {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(2rem, 6vw, 6rem); align-items: start;
+}
+.aw-home .aw-trust__list { border-top: 1px solid var(--aw-pale); }
+.aw-home .aw-trust__item { padding: clamp(1.5rem, 2.6vw, 2.25rem) 0; border-bottom: 1px solid var(--aw-pale); }
+.aw-home .aw-trust__name { font-size: 1.375rem; line-height: 1.25; letter-spacing: -0.014em; font-weight: 600; color: var(--aw-ink); }
+.aw-home .aw-trust__text { margin-top: 0.5rem; max-width: 38rem; font-size: 1.0625rem; line-height: 1.5; color: var(--aw-body); }
+@media (max-width: 52rem) {
+  .aw-home .aw-trust__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* =========================================================================
+   6. TESTEMUNHOS · carrossel nativo, sem autoplay, que sai pelos bordos
+   O fundo funde-se com o branco: sem linhas, sem diagonais.
+   ========================================================================= */
+.aw-home .aw-voices {
+  --soft: clamp(4rem, 10vw, 9rem);
+  padding: clamp(5rem, 9vw, 9rem) 0;
+  background: linear-gradient(to bottom, var(--aw-white) 0, var(--aw-tint) var(--soft), var(--aw-tint) calc(100% - var(--soft)), var(--aw-white) 100%);
+}
+.aw-home .aw-voices__head {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem;
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+.aw-home .aw-rail-ctl { display: flex; gap: 0.75rem; flex: none; }
+@media (hover: none), (pointer: coarse) { .aw-home .aw-rail-ctl { display: none; } }
+.aw-home button.aw-ctl {
+  width: 3rem; height: 3rem; margin: 0; padding: 0; display: grid; place-items: center;
+  border: 1px solid var(--aw-pale); border-radius: 50%; color: var(--aw-ink); background: var(--aw-white);
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease), color var(--aw-dur-fast) var(--aw-ease), opacity var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-home button.aw-ctl:hover, .aw-home button.aw-ctl:focus { color: #fff; background: var(--aw-navy); border-color: var(--aw-navy); }
+.aw-home button.aw-ctl:active { transform: scale(0.94); }
+.aw-home button.aw-ctl[aria-disabled="true"] { opacity: 0.35; cursor: default; color: var(--aw-ink); background: var(--aw-white); border-color: var(--aw-pale); }
+.aw-home button.aw-ctl[aria-disabled="true"]:active { transform: none; }
+
+.aw-home .aw-rail {
+  display: flex; gap: clamp(0.875rem, 1.6vw, 1.5rem); overflow-x: auto;
+  padding: 0.25rem var(--aw-rail-pad) 1.5rem; scroll-padding-inline: var(--aw-rail-pad);
+  scroll-snap-type: x proximity; overscroll-behavior-x: contain;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.aw-home .aw-rail::-webkit-scrollbar { display: none; }
+.aw-home .aw-quote {
+  flex: 0 0 min(82vw, 24rem); scroll-snap-align: start; min-height: 21rem;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
+  padding: clamp(1.5rem, 2.4vw, 2.25rem); border-radius: 1.75rem; background: var(--aw-white);
+}
+.aw-home .aw-quote__text {
+  font-size: 1.25rem; line-height: 1.4; letter-spacing: -0.014em; font-weight: 500; color: var(--aw-ink);
+}
+.aw-home .aw-quote[data-size="s"] .aw-quote__text {   /* frases curtas ganham escala */
+  font-size: clamp(1.5rem, 1.1rem + 1vw, 1.875rem); line-height: 1.2; letter-spacing: -0.02em; font-weight: 600;
+}
+.aw-home .aw-quote figcaption { display: flex; align-items: center; gap: 0.875rem; }
+.aw-home .aw-avatar {
+  flex: none; width: 3rem; height: 3rem; border-radius: 50%; object-fit: cover;
+  display: grid; place-items: center; background: var(--aw-light); color: var(--aw-navy);
+  font-size: 1rem; font-weight: 650; letter-spacing: 0.02em;
+}
+.aw-home .aw-quote__name { font-size: 1rem; line-height: 1.25; font-weight: 600; color: var(--aw-ink); }
+.aw-home .aw-quote__meta { margin-top: 0.15rem; font-size: 0.9375rem; line-height: 1.35; color: var(--aw-muted); }
+
+/* =========================================================================
+   7. ATLEAN TALKS · cartões de newsroom: imagem, título, data
+   ========================================================================= */
+.aw-home .aw-talks { padding: clamp(4rem, 8vw, 8rem) 0 clamp(5rem, 9vw, 9rem); }
+.aw-home .aw-talks__head {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 1.5rem 3rem; margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+@supports (align-items: last baseline) {
+  .aw-home .aw-talks__head { align-items: last baseline; }   /* "All articles" fica na linha de base do subtítulo */
+}
+.aw-home .aw-posts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.5rem, 3vw, 2.5rem); }
+.aw-home .aw-post { display: block; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.aw-home .aw-post__media { aspect-ratio: 16 / 10; overflow: hidden; border-radius: 1.25rem; background: var(--aw-navy); isolation: isolate; }
+.aw-home .aw-post__media img {
+  width: 100%; height: 100%; object-fit: cover; transition: transform var(--aw-dur) var(--aw-ease);
+}
+.aw-home .aw-post:hover .aw-post__media img, .aw-home .aw-post:focus-visible .aw-post__media img { transform: scale(1.035); }
+.aw-home .aw-post__title {
+  margin-top: 1.1rem; font-size: 1.3125rem; line-height: 1.25; letter-spacing: -0.016em; font-weight: 600; color: var(--aw-ink);
+}
+.aw-home .aw-post:hover .aw-post__title, .aw-home .aw-post:focus-visible .aw-post__title {
+  text-decoration: underline; text-decoration-thickness: 0.06em; text-underline-offset: 0.18em;
+}
+.aw-home .aw-post__date { display: block; margin-top: 0.5rem; font-size: 0.9375rem; color: var(--aw-muted); }
+.aw-home .aw-post--skeleton .aw-post__media { background: var(--aw-tint); }
+.aw-home .aw-post--skeleton i { display: block; height: 0.9rem; margin-top: 1rem; border-radius: 0.45rem; background: var(--aw-tint); }
+.aw-home .aw-post--skeleton i + i { width: 62%; margin-top: 0.6rem; }
+@keyframes aw-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.aw-home .aw-post--skeleton { animation: aw-pulse 1.6s ease-in-out infinite; }
+.aw-home .aw-posts__msg { grid-column: 1 / -1; font-size: 1.0625rem; color: var(--aw-body); }
+
+.aw-home .aw-follow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 0.75rem;
+  margin-top: clamp(3rem, 6vw, 5rem); padding-top: clamp(1.5rem, 3vw, 2rem); border-top: 1px solid var(--aw-pale);
+}
+.aw-home .aw-follow__text { margin-right: 0.75rem; font-size: 1.0625rem; color: var(--aw-body); }
+.aw-home .aw-chip {
+  display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.65rem 1.1rem 0.65rem 0.9rem;
+  border: 1px solid var(--aw-pale); border-radius: 999px; background: var(--aw-white);
+  font-size: 1rem; font-weight: 600; line-height: 1.2; color: var(--aw-ink);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease), color var(--aw-dur-fast) var(--aw-ease), border-color var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-home .aw-chip:hover, .aw-home .aw-chip:focus { color: #fff; background: var(--aw-navy); border-color: var(--aw-navy); }
+.aw-home .aw-chip:active { transform: scale(0.97); }
+
+/* =========================================================================
+   Preferências do utilizador
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  /* sem deslizes nem molas: só fusões de opacidade */
+  .aw-home .aw-hero__title span, .aw-home .aw-hero__sub, .aw-home .aw-hero__actions { animation-name: aw-fade; animation-duration: 0.4s; animation-delay: 0s; }
+  .aw-home .aw-dest, .aw-home .aw-dest__img, .aw-home .aw-post__media img, .aw-home .aw-job__chev { transition: none; }
+  .aw-home .aw-dest__more { transition: opacity 0.2s linear; }
+  .aw-home .aw-dest:hover .aw-dest__img, .aw-home .aw-post:hover .aw-post__media img, .aw-home .aw-job:hover .aw-job__chev { transform: none; }
+  .aw-home .aw-post--skeleton { animation: none; }
+  .aw-home .aw-btn:active, .aw-home .aw-chip:active, .aw-home button.aw-ctl:active, .aw-home button.aw-hero__toggle:active { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .aw-home button.aw-hero__toggle { background: rgba(25, 51, 96, 0.92); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .aw-home { --aw-muted: #34496f; }
+  .aw-home .aw-job, .aw-home .aw-jobs__list, .aw-home .aw-trust__item, .aw-home .aw-trust__list, .aw-home .aw-follow { border-color: var(--aw-navy); }
+  .aw-home .aw-chip, .aw-home button.aw-ctl { border-color: var(--aw-navy); }
+}
+
+/* ---- ecrãs pequenos ---- */
+@media (max-width: 56rem) {
+  /* tablet: três artigos lado a lado (como no desktop), com o texto um passo mais pequeno */
+  .aw-home .aw-post__title { font-size: 1.125rem; }
+  /* a frase fica numa linha; os botões das redes ficam todos na linha de baixo */
+  .aw-home .aw-follow__text { flex: 1 0 100%; margin-right: 0; }
+}
+@media (max-width: 43.6875rem) {
+  /* telemóvel: um artigo por linha, sem imagens gigantes em ecrãs médios */
+  .aw-home .aw-posts { grid-template-columns: minmax(0, 1fr); max-width: 34rem; }
+  .aw-home .aw-post__title { font-size: 1.3125rem; }
+}
+@media (max-width: 30rem) {
+  /* os três botões das redes cabem numa só linha a partir dos 375px */
+  .aw-home .aw-follow { gap: 0.75rem 0.5rem; }
+  .aw-home .aw-chip { gap: 0.4rem; padding: 0.8rem 0.8rem 0.8rem 0.65rem; font-size: 0.875rem; }
+}

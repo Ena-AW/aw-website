@@ -1,0 +1,338 @@
+<!-- nav: home -->
+<!DOCTYPE html>
+<html lang="en" data-root="{{root}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlean World — Your Next Job, Without Boundaries</title>
+<meta name="description" content="Jobs for multilingual professionals in Portugal, Greece, Poland, Bulgaria and Cyprus.">
+<link rel="stylesheet" href="{{root}}assets/css/site.css">
+<link rel="stylesheet" href="{{root}}assets/css/home.css">
+<script src="{{root}}assets/js/site.js" defer></script>
+<script src="{{root}}assets/js/home.js" defer></script>
+</head>
+<body>
+
+<!-- include:header -->
+
+<main class="aw-home" id="content">
+
+  <!-- ========================================================================
+       1. HERO
+       ======================================================================== -->
+  <section class="aw-hero" id="home" aria-labelledby="aw-hero-title">
+    <video class="aw-hero__video" autoplay muted loop playsinline preload="metadata" aria-hidden="true" tabindex="-1" disablepictureinpicture>
+      <source src="https://atleanworld.com/wp-content/uploads/2026/08/ATLEAN-WORD-Video-Ecra.mp4" type="video/mp4">
+    </video>
+    <div class="aw-hero__scrim" aria-hidden="true"></div>
+
+    <div class="aw-hero__inner">
+      <h1 class="aw-hero__title" id="aw-hero-title"><span>Your next job,</span> <span>without boundaries.</span></h1>
+      <p class="aw-hero__sub">Jobs for multilingual professionals in Portugal, Greece, Poland, Bulgaria and Cyprus.</p>
+      <div class="aw-hero__actions">
+        <a class="aw-btn aw-btn--light" href="{{root}}open-jobs/">Apply to your next job</a>
+        <a class="aw-hero__more" href="#who-we-are">Meet Atlean World</a>
+      </div>
+    </div>
+
+    <button type="button" class="aw-hero__toggle" data-state="playing" aria-label="Pause background video">
+      <svg class="aw-i-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+      <svg class="aw-i-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.2-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg>
+    </button>
+  </section>
+
+  <!-- ========================================================================
+       2. WHO WE ARE
+       ======================================================================== -->
+  <section class="aw-statement" id="who-we-are" aria-labelledby="aw-who-title">
+    <div class="aw-wrap">
+      <h2 class="aw-vh" id="aw-who-title">Who we are</h2>
+      <p class="aw-statement__text">Atlean World is an international HR consultancy dedicated to promoting multicultural environments as the new reality.</p>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       3. SPOTLIGHT JOBS · filled by home.js from data/spotlight-jobs.json
+       ======================================================================== -->
+  <section class="aw-jobs" id="jobs" aria-labelledby="aw-jobs-title">
+    <div class="aw-wrap">
+      <div class="aw-jobs__head">
+        <div>
+          <h2 class="aw-title" id="aw-jobs-title">Spotlight jobs</h2>
+          <p class="aw-lead">We make your recruitment journey smoother and more enjoyable.</p>
+        </div>
+        <a class="aw-btn" href="{{root}}open-jobs/">Browse our opportunities</a>
+      </div>
+
+      <ul class="aw-jobs__list" id="aw-jobs-list" aria-busy="true"></ul>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       4. DESTINATIONS
+       ======================================================================== -->
+  <section class="aw-dests-sec" id="destinations" aria-labelledby="aw-dest-title">
+    <div class="aw-wrap aw-dests__head">
+      <h2 class="aw-title" id="aw-dest-title">Our destinations</h2>
+      <p class="aw-lead">Pick a country to see its open roles.</p>
+    </div>
+
+    <ul class="aw-dests">
+      <li class="aw-dest">
+        <a class="aw-dest__link" href="{{root}}open-jobs/?job__location_spec=algarve,lisbon-portugal,porto-portugal,braga-portugal" aria-labelledby="d-pt-n d-pt-c" aria-describedby="d-pt-t">
+          <img class="aw-dest__img" src="https://atleanworld.com/wp-content/uploads/2023/08/portugal-job-opportunity.jpg" alt="" loading="lazy" decoding="async">
+          <span class="aw-dest__scrim"></span>
+          <div class="aw-dest__body">
+            <p class="aw-dest__hello" lang="pt">Bem-vindo</p>
+            <h3 class="aw-dest__country" id="d-pt-n">Portugal</h3>
+            <div class="aw-dest__more"><div>
+              <p class="aw-dest__text" id="d-pt-t">One of the safest countries in the world, and Lisbon is a favourite of digital nomads.</p>
+              <span class="aw-dest__cta" id="d-pt-c">See open jobs</span>
+            </div></div>
+          </div>
+        </a>
+      </li>
+      <li class="aw-dest">
+        <a class="aw-dest__link" href="{{root}}open-jobs/?job__location_spec=athens-greece,greece,thessaloniki-greece" aria-labelledby="d-gr-n d-gr-c" aria-describedby="d-gr-t">
+          <img class="aw-dest__img" src="https://atleanworld.com/wp-content/uploads/2023/08/greece-job-opportunity.jpg" alt="" loading="lazy" decoding="async">
+          <span class="aw-dest__scrim"></span>
+          <div class="aw-dest__body">
+            <p class="aw-dest__hello" lang="el">Καλώς ήρθατε</p>
+            <h3 class="aw-dest__country" id="d-gr-n">Greece</h3>
+            <div class="aw-dest__more"><div>
+              <p class="aw-dest__text" id="d-gr-t">Sunshine most of the year, and the ancient world on your doorstep.</p>
+              <span class="aw-dest__cta" id="d-gr-c">See open jobs</span>
+            </div></div>
+          </div>
+        </a>
+      </li>
+      <li class="aw-dest">
+        <a class="aw-dest__link" href="{{root}}open-jobs/?job__location_spec=gdansk" aria-labelledby="d-pl-n d-pl-c" aria-describedby="d-pl-t">
+          <img class="aw-dest__img" src="https://atleanworld.com/wp-content/uploads/2024/04/iwona-castiello-d-antonio-KWcQ6_dk_OM-unsplash-1.jpg" alt="" loading="lazy" decoding="async">
+          <span class="aw-dest__scrim"></span>
+          <div class="aw-dest__body">
+            <p class="aw-dest__hello" lang="pl">Witamy</p>
+            <h3 class="aw-dest__country" id="d-pl-n">Poland</h3>
+            <div class="aw-dest__more"><div>
+              <p class="aw-dest__text" id="d-pl-t">Castles, fairy-tale old towns and a fast-growing economy.</p>
+              <span class="aw-dest__cta" id="d-pl-c">See open jobs</span>
+            </div></div>
+          </div>
+        </a>
+      </li>
+      <li class="aw-dest">
+        <a class="aw-dest__link" href="{{root}}open-jobs/" aria-labelledby="d-bg-n d-bg-c" aria-describedby="d-bg-t">
+          <img class="aw-dest__img" src="https://atleanworld.com/wp-content/uploads/2026/08/Principais-atracoes-de-Sofia-Planet-of-Hotels.jpg" alt="" loading="lazy" decoding="async">
+          <span class="aw-dest__scrim"></span>
+          <div class="aw-dest__body">
+            <p class="aw-dest__hello" lang="bg">Добре дошли</p>
+            <h3 class="aw-dest__country" id="d-bg-n">Bulgaria</h3>
+            <div class="aw-dest__more"><div>
+              <p class="aw-dest__text" id="d-bg-t">One of the lowest costs of living in the EU, with Sofia’s café culture, mountains and the Black Sea coast.</p>
+              <span class="aw-dest__cta" id="d-bg-c">See open jobs</span>
+            </div></div>
+          </div>
+        </a>
+      </li>
+      <li class="aw-dest">
+        <a class="aw-dest__link" href="{{root}}open-jobs/" aria-labelledby="d-cy-n d-cy-c" aria-describedby="d-cy-t">
+          <img class="aw-dest__img" src="https://atleanworld.com/wp-content/uploads/2026/08/secret-travel-guide-O_7emptPfWM-unsplash.jpg" alt="" loading="lazy" decoding="async">
+          <span class="aw-dest__scrim"></span>
+          <div class="aw-dest__body">
+            <p class="aw-dest__hello" lang="el">Καλώς ορίσατε</p>
+            <h3 class="aw-dest__country" id="d-cy-n">Cyprus</h3>
+            <div class="aw-dest__more"><div>
+              <p class="aw-dest__text" id="d-cy-t">Mediterranean beaches, ancient ruins, over 300 days of sunshine and a growing tech and iGaming scene.</p>
+              <span class="aw-dest__cta" id="d-cy-c">See open jobs</span>
+            </div></div>
+          </div>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ========================================================================
+       5. WHY TRUST US
+       ======================================================================== -->
+  <section class="aw-trust" id="trust" aria-labelledby="aw-trust-title">
+    <div class="aw-wrap aw-trust__grid">
+      <h2 class="aw-title" id="aw-trust-title">Why you should trust us</h2>
+      <ul class="aw-trust__list">
+        <li class="aw-trust__item">
+          <h3 class="aw-trust__name">Experienced recruiters</h3>
+          <p class="aw-trust__text">We have lived similar experiences ourselves. We understand your fears and concerns, and we are here to turn them into a great life experience.</p>
+        </li>
+        <li class="aw-trust__item">
+          <h3 class="aw-trust__name">A wide range of clients</h3>
+          <p class="aw-trust__text">We work with many different companies and roles, so we can always find the right adventure for you.</p>
+        </li>
+        <li class="aw-trust__item">
+          <h3 class="aw-trust__name">Fast recruitment process</h3>
+          <p class="aw-trust__text">Applying directly to a company can be slow, with many steps. We speed that up, and sometimes close the deal within 24 hours.</p>
+        </li>
+        <li class="aw-trust__item">
+          <h3 class="aw-trust__name">We care</h3>
+          <p class="aw-trust__text">We are genuinely excited about your adventure, so we treat it like our own journey.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       6. TESTIMONIALS
+       ======================================================================== -->
+  <section class="aw-voices" id="testimonials" aria-labelledby="aw-voices-title">
+    <div class="aw-wrap aw-voices__head">
+      <h2 class="aw-title" id="aw-voices-title">Testimonials without boundaries</h2>
+      <div class="aw-rail-ctl">
+        <button type="button" class="aw-ctl" id="aw-voices-prev" aria-label="Previous testimonials" aria-controls="aw-voices-rail" aria-disabled="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+        </button>
+        <button type="button" class="aw-ctl" id="aw-voices-next" aria-label="Next testimonials" aria-controls="aw-voices-rail">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="aw-rail" id="aw-voices-rail" role="region" aria-label="Candidate testimonials" tabindex="0">
+      <figure class="aw-quote">
+        <blockquote><p class="aw-quote__text">“Working with Atlean is a game-changer! Filipa’s insight, dedication, and genuine support helped me find the ideal role to balance with my other commitments. Highly recommend!”</p></blockquote>
+        <figcaption>
+          <img class="aw-avatar" src="https://atleanworld.com/wp-content/uploads/2024/12/ines-pinto.png" alt="" width="48" height="48" loading="lazy" decoding="async">
+          <div>
+            <p class="aw-quote__name">Inês Pinto</p>
+            <p class="aw-quote__meta">Portuguese/English Language Interpreter, Portugal</p>
+            <p class="aw-quote__meta">Recruiter: Filipa</p>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="aw-quote" data-size="s">
+        <blockquote><p class="aw-quote__text">“The recruiter’s fantastic support made the decision so easy.”</p></blockquote>
+        <figcaption>
+          <span class="aw-avatar" aria-hidden="true">RC</span>
+          <div>
+            <p class="aw-quote__name">Renato Cristo</p>
+            <p class="aw-quote__meta">Meta Advisor, Italy</p>
+            <p class="aw-quote__meta">Recruiter: Paula</p>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="aw-quote" data-size="s">
+        <blockquote><p class="aw-quote__text">“Professional approach and availability of information.”</p></blockquote>
+        <figcaption>
+          <img class="aw-avatar" src="https://atleanworld.com/wp-content/uploads/2024/12/glauco-junqueira.png" alt="" width="48" height="48" loading="lazy" decoding="async">
+          <div>
+            <p class="aw-quote__name">Glauco Junqueira</p>
+            <p class="aw-quote__meta">English Digital Sales Agent, Portugal</p>
+            <p class="aw-quote__meta">Recruiter: Rafael</p>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="aw-quote">
+        <blockquote><p class="aw-quote__text">“I had such a great experience when I went through the interview process for this position. The recruiter, Sandra Teixeira, was incredibly helpful and professional. I have nothing but praise for such a great experience!”</p></blockquote>
+        <figcaption>
+          <span class="aw-avatar" aria-hidden="true">MD</span>
+          <div>
+            <p class="aw-quote__name">Marija Dolobh</p>
+            <p class="aw-quote__meta">German Digital Content Review Specialist, Bosnia</p>
+            <p class="aw-quote__meta">Recruiter: Sandra</p>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="aw-quote" data-size="s">
+        <blockquote><p class="aw-quote__text">“Professional, smooth, efficient, no delay, pleasant!”</p></blockquote>
+        <figcaption>
+          <span class="aw-avatar" aria-hidden="true">LK</span>
+          <div>
+            <p class="aw-quote__name">Lubomir Kuznik</p>
+            <p class="aw-quote__meta">Technical Support, Czechia</p>
+            <p class="aw-quote__meta">Recruiter: Rafael</p>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="aw-quote">
+        <blockquote><p class="aw-quote__text">“Working with Roberto was fantastic! He was professional, attentive, and genuinely supportive throughout the process. His insights and clear communication made the job search smooth and positive.”</p></blockquote>
+        <figcaption>
+          <span class="aw-avatar" aria-hidden="true">YU</span>
+          <div>
+            <p class="aw-quote__name">Yadmilde Ukuahamba</p>
+            <p class="aw-quote__meta">Security &amp; Compliance / Identity Technical Support, Angola</p>
+            <p class="aw-quote__meta">Recruiter: Roberto</p>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="aw-quote" data-size="s">
+        <blockquote><p class="aw-quote__text">“Fulfilling and easy going.”</p></blockquote>
+        <figcaption>
+          <img class="aw-avatar" src="https://atleanworld.com/wp-content/uploads/2024/12/Leonardo-Rodrigues.png" alt="" width="48" height="48" loading="lazy" decoding="async">
+          <div>
+            <p class="aw-quote__name">Leonardo Rodrigues</p>
+            <p class="aw-quote__meta">Real Time Interpreter, Portugal</p>
+            <p class="aw-quote__meta">Recruiter: Ana</p>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="aw-quote" data-size="s">
+        <blockquote><p class="aw-quote__text">“It was simply amazing and very helpful.”</p></blockquote>
+        <figcaption>
+          <span class="aw-avatar" aria-hidden="true">AJ</span>
+          <div>
+            <p class="aw-quote__name">Amakom Jude</p>
+            <p class="aw-quote__meta">Customer Service Representative, Nigeria</p>
+            <p class="aw-quote__meta">Recruiter: Konstantina</p>
+          </div>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       7. ATLEAN TALKS
+       ======================================================================== -->
+  <section class="aw-talks" id="atlean-talks" aria-labelledby="aw-talks-title">
+    <div class="aw-wrap">
+      <div class="aw-talks__head">
+        <div>
+          <h2 class="aw-title" id="aw-talks-title">Atlean Talks</h2>
+          <p class="aw-lead">Take a look at our latest articles.</p>
+        </div>
+        <a class="aw-link" href="{{root}}atleantalks/">All articles</a>
+      </div>
+
+      <div class="aw-posts" id="aw-posts" aria-busy="true">
+        <div class="aw-post aw-post--skeleton" aria-hidden="true"><div class="aw-post__media"></div><i></i><i></i></div>
+        <div class="aw-post aw-post--skeleton" aria-hidden="true"><div class="aw-post__media"></div><i></i><i></i></div>
+        <div class="aw-post aw-post--skeleton" aria-hidden="true"><div class="aw-post__media"></div><i></i><i></i></div>
+      </div>
+
+      <div class="aw-follow">
+        <p class="aw-follow__text">Follow us on social media and don’t miss any news.</p>
+        <a class="aw-chip" href="https://www.instagram.com/atleanworld/" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Instagram
+        </a>
+        <a class="aw-chip" href="https://www.linkedin.com/company/atleanworld" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a>
+        <a class="aw-chip" href="https://www.tiktok.com/@atleanworld" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82c-1.06-.92-1.7-2.27-1.7-3.82h-3.34v14.4a2.6 2.6 0 1 1-2.6-2.6c.24 0 .48.03.7.1V10.5a5.94 5.94 0 0 0-.7-.04A5.96 5.96 0 1 0 15 16.02V9.35c1.31.94 2.92 1.5 4.66 1.5V7.5c-1.16 0-2.24-.36-3.06-.98a5.9 5.9 0 0 1 0-.7z"/></svg>
+          TikTok
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- include:footer -->
+
+</body>
+</html>
