@@ -172,8 +172,8 @@ html:has(.aw-home) { scroll-padding-top: 0; }
     padding-bottom: clamp(2rem, 4vw, 3.5rem);
   }
   .aw-home .aw-hero__title { font-size: min(clamp(2.6rem, 5.4vw, 6rem), 8.5svh); }
-  .aw-home .aw-hero__sub { margin-top: 0; }
-  .aw-home .aw-hero__actions { margin-top: 1.5rem; }
+  .aw-home .aw-hero__aside { justify-self: end; }
+  .aw-home .aw-hero__actions { margin-top: 0; }
 }
 @media (max-width: 56.1875rem) {
   .aw-home .aw-hero { align-items: stretch; }
@@ -182,6 +182,12 @@ html:has(.aw-home) { scroll-padding-top: 0; }
     padding-top: clamp(1.75rem, 6vw, 3rem);
   }
   .aw-home .aw-hero__title { padding-right: 3.25rem; font-size: clamp(2.4rem, 0.8rem + 6.4vw, 4.5rem); }   /* espaço para o botão de pausa */
+}
+
+/* botão principal do hero: o alvo maior da página (56px de altura, texto a 19px) */
+.aw-home .aw-hero .aw-btn {
+  min-height: 3.5rem; padding: 0.95rem 2rem;
+  font-size: 1.1875rem; font-weight: 600; letter-spacing: -0.012em;
 }
 
 /* controlo de pausa: vidro leve sobre o vídeo, com o rebordo de cima a apanhar luz */
