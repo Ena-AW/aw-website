@@ -11,6 +11,7 @@
   --aw-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --aw-dur: 0.4s;
   display: block;
+  overflow-x: hidden; overflow-x: clip;   /* closed menus near the right edge never widen the page */
   font-family: var(--site-font);
   color: var(--aw-body);
   background: #fff;
@@ -82,23 +83,87 @@
 .aw-filter--search input::placeholder { color: var(--aw-muted); opacity: 1; }
 .aw-filter--search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 
-.aw-filter select {
-  height: 3rem; margin: 0; padding: 0 1.4rem 0 0; border: 0; border-radius: 0;
-  font: inherit; font-size: 1rem; font-weight: 500; color: var(--aw-body); background-color: transparent;
-  -webkit-appearance: none; appearance: none; cursor: pointer;
-  field-sizing: content;   /* as wide as the chosen option, not the longest one */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234f668c' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right center;
+/* ---- filter menus (built by jobs.js) ---------------------------------------------------- */
+.aw-dd { position: relative; }
+.aw-dd__btn {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  height: 3rem; margin: 0; padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 1rem; font-weight: 500; color: var(--aw-body); white-space: nowrap;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  transition: color var(--aw-dur) var(--aw-ease);
+  transition: color var(--aw-dur) var(--aw-ease), transform 0.1s ease-out;
 }
-.aw-filter select:hover { color: var(--aw-ink); }
-.aw-filter select:focus { outline: none; }
-.aw-filter select:focus-visible { outline: 3px solid var(--aw-navy); outline-offset: 2px; border-radius: 4px; }
-.aw-filter select.is-set {
-  font-weight: 650; color: var(--aw-ink);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23193360' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+.aw-dd__btn:hover, .aw-dd.is-open .aw-dd__btn { color: var(--aw-ink); }
+.aw-dd__btn:active { transform: scale(0.97); }
+.aw-dd__btn:focus-visible { outline: 3px solid var(--aw-navy); outline-offset: 2px; border-radius: 4px; }
+.aw-dd.is-set .aw-dd__btn { font-weight: 650; color: var(--aw-ink); }
+.aw-dd__badge {
+  display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.35rem; padding: 0 0.4rem;
+  border-radius: 999px; background: var(--aw-navy); color: #fff;
+  font-size: 0.75rem; font-weight: 650; letter-spacing: 0.01em;
 }
+.aw-dd__chev { flex: none; color: var(--aw-muted); transition: transform var(--aw-dur) var(--aw-ease), color var(--aw-dur) var(--aw-ease); }
+.aw-dd.is-open .aw-dd__chev { transform: rotate(180deg); color: var(--aw-ink); }
+.aw-dd.is-set .aw-dd__chev { color: var(--aw-ink); }
+
+/* the panel grows out of its button: scale + fade from the top-left corner, critically damped */
+.aw-dd__panel {
+  position: absolute; z-index: 30; top: calc(100% + 0.35rem); left: -0.75rem;
+  width: max-content; min-width: 15rem; max-width: min(22rem, calc(100vw - 2 * var(--aw-gutter)));
+  padding: 0.4rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 0 0 1px rgba(25, 51, 96, 0.08), 0 12px 32px -8px rgba(25, 51, 96, 0.28), 0 2px 6px rgba(25, 51, 96, 0.06);
+  transform-origin: top left;
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(0.96);
+  transition: opacity 0.2s var(--aw-ease), transform 0.35s var(--aw-ease), visibility 0s linear 0.35s;
+}
+.aw-dd.is-flipped .aw-dd__panel { left: auto; right: -0.75rem; transform-origin: top right; }
+.aw-dd.is-open .aw-dd__panel {
+  opacity: 1; visibility: visible; transform: none;
+  transition: opacity 0.2s var(--aw-ease), transform 0.35s var(--aw-ease), visibility 0s;
+}
+.aw-dd__list { margin: 0; padding: 0; list-style: none; max-height: min(20rem, 55vh); overflow-y: auto; overscroll-behavior: contain; }
+.aw-dd__list:focus { outline: none; }
+.aw-dd__opt {
+  display: flex; align-items: center; gap: 0.75rem;
+  min-height: 2.75rem; padding: 0.4rem 0.75rem; border-radius: 0.65rem;
+  font-size: 1rem; color: var(--aw-ink); cursor: pointer; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s var(--aw-ease);
+}
+.aw-dd__opt:hover, .aw-dd__opt:focus { outline: none; background: var(--aw-tint); }
+.aw-dd__opt:focus-visible { box-shadow: inset 0 0 0 2px var(--aw-navy); }
+.aw-dd__opt:active { background: var(--aw-pale); transition-duration: 0.05s; }
+.aw-dd__text { flex: 1; }
+.aw-dd__n { font-size: 0.875rem; color: var(--aw-muted); font-variant-numeric: tabular-nums; }
+
+/* round check: an empty ring that fills navy, the tick draws itself in */
+.aw-dd__check {
+  flex: none; display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--aw-light); color: #fff;
+  transition: background-color 0.25s var(--aw-ease), box-shadow 0.25s var(--aw-ease), transform 0.1s ease-out;
+}
+.aw-dd__check svg { width: 0.8rem; height: 0.8rem; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 0.3s var(--aw-ease); }
+.aw-dd__opt:active .aw-dd__check { transform: scale(0.9); }
+.aw-dd__opt[aria-selected="true"] .aw-dd__check { background: var(--aw-navy); box-shadow: inset 0 0 0 1.5px var(--aw-navy); }
+.aw-dd__opt[aria-selected="true"] .aw-dd__check svg { stroke-dashoffset: 0; transition-delay: 0.05s; }
+.aw-dd__opt[aria-selected="true"] .aw-dd__text { font-weight: 600; }
+
+.aw-dd__foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 0.3rem; padding: 0.35rem 0.35rem 0.1rem 0.75rem; border-top: 1px solid var(--aw-pale);
+}
+.aw-dd__reset, .aw-dd__done {
+  margin: 0; padding: 0.55rem 0.4rem; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 0.9375rem; font-weight: 600; color: var(--aw-ink);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.aw-dd__reset { padding-left: 0; font-weight: 500; color: var(--aw-muted); }
+.aw-dd__reset:disabled { opacity: 0.4; cursor: default; }
+.aw-dd__done { padding: 0.55rem 1rem; border-radius: 999px; background: var(--aw-navy); color: #fff; transition: transform 0.1s ease-out; }
+.aw-dd__done:active { transform: scale(0.96); }
+.aw-dd__reset:focus-visible, .aw-dd__done:focus-visible { outline: 3px solid var(--aw-navy); outline-offset: 2px; border-radius: 999px; }
 
 .aw-jbar {
   display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
@@ -141,9 +206,8 @@
   font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem); line-height: 1.25; letter-spacing: -0.018em; font-weight: 600;
   color: var(--aw-ink); text-wrap: balance;
 }
-.aw-jrow__meta { grid-column: 1; margin: 0; font-size: 1rem; line-height: 1.45; color: var(--aw-muted); }
+.aw-jrow__meta { grid-column: 1; display: flex; flex-wrap: wrap; column-gap: 1rem; margin: 0; font-size: 1rem; line-height: 1.45; color: var(--aw-muted); }
 .aw-jrow__meta span { white-space: nowrap; }
-.aw-jrow__meta span + span::before { content: "·"; margin: 0 0.55em; color: var(--aw-light); }
 .aw-jrow__lang { font-weight: 600; color: var(--aw-body); }
 .aw-jrow__chev {
   grid-column: 2; grid-row: 1 / span 2; flex: none; color: var(--aw-ink);
@@ -167,7 +231,7 @@
 @media (max-width: 43.6875rem) {
   .aw-filters { gap: 0 1.5rem; }
   .aw-filter--search input { height: 3.5rem; font-size: 1.125rem; }   /* >16px: iPhone does not zoom into the field */
-  .aw-filter select { font-size: 1rem; height: 2.75rem; }
+  .aw-dd__btn { height: 2.75rem; }
   .aw-jrow a { gap: 0.35rem 1rem; }
   .aw-jrow__chev { align-self: start; margin-top: 0.2rem; }
 }
@@ -176,11 +240,18 @@
    User preferences
    ========================================================================= */
 @media (prefers-reduced-motion: reduce) {
+  .aw-dd__panel, .aw-dd.is-open .aw-dd__panel { transform: none; transition: opacity 0.15s linear, visibility 0s linear 0.15s; }
+  .aw-dd__chev, .aw-dd__check svg, .aw-dd__check { transition: none; }
+  .aw-dd__btn:active, .aw-dd__done:active, .aw-dd__opt:active .aw-dd__check { transform: none; }
   .aw-jrow--skeleton { animation: none; }
   .aw-jrow__chev, .aw-jrow a::before { transition: none; }
   .aw-jrow a:hover .aw-jrow__chev { transform: none; }
 }
+@media (prefers-reduced-transparency: reduce) {
+  .aw-dd__panel { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 @media (prefers-contrast: more) {
+  .aw-dd__panel { box-shadow: 0 0 0 1px var(--aw-navy), 0 12px 32px -8px rgba(25, 51, 96, 0.28); }
   .aw-filter--search, .aw-jrows, .aw-jrow, .aw-jempty { border-color: var(--aw-navy); }
   .aw-jobsp { --aw-muted: #34496f; }
 }
