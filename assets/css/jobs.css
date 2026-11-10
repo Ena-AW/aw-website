@@ -1,16 +1,24 @@
 /* =========================================================================
    ATLEAN WORLD · OPEN JOBS
-   Banner (map + "A" mark + title), filter row, job list.
+   Same language as the home page: no boxes, hairlines between rows, type does
+   the work. Banner (map + "A" mark + title), one search line, quiet filters,
+   then the list.
    ========================================================================= */
 
 .aw-jobsp {
-  --aw-max: 1140px;
+  --aw-max: 1240px;
   --aw-gutter: clamp(1.25rem, 4.5vw, 3.5rem);
   --aw-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --aw-dur: 0.4s;
   display: block;
   font-family: var(--site-font);
   color: var(--aw-body);
   background: #fff;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  .aw-jobsp {
+    --aw-ease: linear(0, 0.0369, 0.1219, 0.2275, 0.3374, 0.4422, 0.5372, 0.6204, 0.6916, 0.7513, 0.8009, 0.8414, 0.8743, 0.9008, 0.922, 0.9389, 0.9523, 0.9628, 0.9711, 0.9776, 0.9826, 0.9866, 0.9897, 0.992, 0.9939, 0.9953, 0.9964, 0.9972, 0.9979, 0.9984, 1);
+  }
 }
 .aw-jobsp *, .aw-jobsp *::before, .aw-jobsp *::after { box-sizing: border-box; }
 .aw-jobsp :focus-visible { outline: 3px solid var(--aw-navy); outline-offset: 3px; }
@@ -22,66 +30,79 @@
 .aw-jwrap { width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin-inline: auto; }
 
 /* =========================================================================
-   1. BANNER
-   The map image goes in media/banners/jobs.jpg. Until it is there, a soft blue
-   wash with a faint dot grid stands in, so the page never looks broken.
+   1. BANNER · the map, the "A" mark, the title. No frame, it fades into the page.
    ========================================================================= */
 .aw-jbanner {
   position: relative; isolation: isolate; overflow: hidden;
   display: grid; place-items: center;
-  min-height: clamp(18rem, 42vw, 29rem);
+  min-height: clamp(17rem, 40vw, 30rem);
   padding: 3rem var(--aw-gutter);
-  border-top: 1px solid var(--aw-pale);
-  background-color: #e9eefa;
+  background-color: #f2f5fc;
   background-image:
-    url("../../media/banners/jobs.jpg"),   /* path is relative to this CSS file */
-    radial-gradient(circle at 1px 1px, rgba(110, 135, 178, 0.35) 1px, transparent 0);
-  background-size: cover, 22px 22px;
-  background-position: center, 0 0;
+    radial-gradient(ellipse 42% 38% at 50% 52%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 100%),   /* quiet halo so the title reads over the routes */
+    linear-gradient(to bottom, rgba(255, 255, 255, 0) 70%, #fff 100%),   /* dissolves into the white below */
+    url("../../media/banners/jobs.jpg");                                 /* path is relative to this CSS file */
+  background-size: cover;
+  background-position: center;
   text-align: center;
 }
 .aw-jbanner__inner { display: grid; justify-items: center; gap: 1.25rem; }
-.aw-jbanner__mark { display: block; width: clamp(2.75rem, 5vw, 3.5rem); height: auto; }
+.aw-jbanner__mark { display: block; width: clamp(2.5rem, 4.5vw, 3.25rem); height: auto; }
 .aw-jbanner__title {
   margin: 0; font-family: var(--site-font);
-  font-size: clamp(1.5rem, 0.9rem + 2.4vw, 2.25rem);
-  line-height: 1.2; letter-spacing: 0.02em; font-weight: 700; text-transform: uppercase;
-  color: var(--aw-ink);
+  font-size: clamp(2rem, 1.1rem + 3vw, 3.75rem);
+  line-height: 1.05; letter-spacing: -0.03em; font-weight: 700;
+  color: var(--aw-ink); text-wrap: balance;
 }
 .aw-jbanner__title span { display: block; }
 
 /* =========================================================================
-   2. FILTERS
+   2. SEARCH + FILTERS
+   One search line with a hairline under it, then the filters as plain text
+   with a chevron. A filter in use turns navy and bold.
    ========================================================================= */
-.aw-jlist { padding: clamp(1.5rem, 3vw, 2.5rem) 0 clamp(4rem, 8vw, 7rem); }
-.aw-filters {
-  display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-}
+.aw-jlist { padding: clamp(1.5rem, 3vw, 2.5rem) 0 clamp(5rem, 9vw, 9rem); }
+.aw-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 2rem; }
+
 .aw-filter { position: relative; display: block; }
-.aw-filter input, .aw-filter select {
-  width: 100%; height: 3rem; margin: 0;
-  padding: 0 2.5rem 0 1rem;
-  border: 1px solid var(--aw-pale); border-radius: 0.75rem;
-  font: inherit; font-size: 0.9375rem; color: var(--aw-ink); background: #fff;
-  -webkit-appearance: none; appearance: none;
-  transition: border-color 0.3s var(--aw-ease), box-shadow 0.3s var(--aw-ease);
+.aw-filter--search {
+  flex: 1 0 100%;
+  display: flex; align-items: center; gap: 0.85rem;
+  border-bottom: 1px solid var(--aw-pale);
+  transition: border-color var(--aw-dur) var(--aw-ease);
 }
-.aw-filter input::placeholder { color: var(--aw-muted); opacity: 1; }
-.aw-filter input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.aw-filter--search:focus-within { border-color: var(--aw-navy); }
+.aw-filter--search svg { flex: none; color: var(--aw-muted); }
+.aw-filter--search input {
+  flex: 1; min-width: 0; height: 4rem; margin: 0; padding: 0; border: 0; border-radius: 0;
+  font: inherit; font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); letter-spacing: -0.012em;
+  color: var(--aw-ink); background: transparent; -webkit-appearance: none; appearance: none;
+}
+.aw-filter--search input:focus { outline: none; }
+.aw-filter--search input::placeholder { color: var(--aw-muted); opacity: 1; }
+.aw-filter--search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
 .aw-filter select {
-  cursor: pointer; text-overflow: ellipsis;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23193360' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 1rem center;
+  height: 3rem; margin: 0; padding: 0 1.4rem 0 0; border: 0; border-radius: 0;
+  font: inherit; font-size: 1rem; font-weight: 500; color: var(--aw-body); background-color: transparent;
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  field-sizing: content;   /* as wide as the chosen option, not the longest one */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234f668c' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right center;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: color var(--aw-dur) var(--aw-ease);
 }
-.aw-filter svg { position: absolute; right: 1rem; top: 50%; translate: 0 -50%; color: var(--aw-muted); pointer-events: none; }
-.aw-filter input:hover, .aw-filter select:hover { border-color: var(--aw-light); }
-.aw-filter input:focus, .aw-filter select:focus { outline: none; border-color: var(--aw-navy); box-shadow: 0 0 0 3px rgba(25, 51, 96, 0.14); }
-.aw-filter select.is-set { border-color: var(--aw-navy); font-weight: 600; }   /* an active filter reads as active */
+.aw-filter select:hover { color: var(--aw-ink); }
+.aw-filter select:focus { outline: none; }
+.aw-filter select:focus-visible { outline: 3px solid var(--aw-navy); outline-offset: 2px; border-radius: 4px; }
+.aw-filter select.is-set {
+  font-weight: 650; color: var(--aw-ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23193360' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
 
 .aw-jbar {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  min-height: 2.75rem; margin: 1.25rem 0 0.75rem;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  margin: clamp(1.75rem, 3vw, 2.5rem) 0 0.75rem;
 }
 .aw-jcount { margin: 0; font-size: 0.9375rem; color: var(--aw-muted); }
 .aw-jclear {
@@ -92,56 +113,63 @@
 }
 
 /* =========================================================================
-   3. JOB LIST · one row per job, the whole row is the link
+   3. THE LIST · hairlines only. The whole row is the link; its hover wash
+   reaches past the column, like the spotlight jobs on the home page.
    ========================================================================= */
-.aw-jrows { margin: 0; padding: 0; list-style: none; border: 1px solid var(--aw-pale); border-radius: 1rem; overflow: hidden; }
+.aw-jrows { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--aw-pale); }
 .aw-jrows:empty { display: none; }
-.aw-jrow + .aw-jrow { border-top: 1px solid var(--aw-pale); }
+.aw-jrow { border-bottom: 1px solid var(--aw-pale); }
 .aw-jrow a {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.75rem 2rem;
-  padding: 1.25rem 1.5rem; color: inherit; text-decoration: none;
+  position: relative; isolation: isolate;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.4rem 2rem;
+  padding: clamp(1.25rem, 2.2vw, 1.75rem) 0;
+  color: inherit; text-decoration: none;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.3s var(--aw-ease);
 }
-.aw-jrow a:hover, .aw-jrow a:focus-visible { background: var(--aw-tint); }
-.aw-jrow a:active { background: var(--aw-pale); transition-duration: 0.1s; }   /* feedback on press */
-.aw-jrow a:focus-visible { outline-offset: -3px; }
-.aw-jrow__title {
-  margin: 0; font-size: 1.1875rem; line-height: 1.3; letter-spacing: -0.012em; font-weight: 500; color: #2c56a0;
+.aw-jrow a::before {
+  content: ""; position: absolute; z-index: -1; inset: 0 calc(var(--aw-gutter) * -0.5);
+  border-radius: 1.25rem; background: var(--aw-tint); opacity: 0;
+  transition: opacity var(--aw-dur) var(--aw-ease);
 }
-.aw-jrow__meta {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.4rem 1.25rem;
-  margin: 0; padding: 0; list-style: none; font-size: 0.9375rem; color: var(--aw-muted);
-}
-.aw-jrow__meta li { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
-.aw-jrow__meta svg { flex: none; color: var(--aw-mid); }
-.aw-jrow__more { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; color: #2c56a0; }
-.aw-jrow__more svg { color: currentColor; transition: transform 0.4s var(--aw-ease); }
-.aw-jrow a:hover .aw-jrow__more svg, .aw-jrow a:focus-visible .aw-jrow__more svg { transform: translateX(3px); }
+.aw-jrow a:hover::before, .aw-jrow a:focus-visible::before { opacity: 1; }
+.aw-jrow a:active::before { opacity: 1; background: var(--aw-pale); transition-duration: 0.1s; }   /* feedback on press */
+.aw-jrow a:focus-visible { outline: none; }
+.aw-jrow a:focus-visible::before { box-shadow: inset 0 0 0 3px var(--aw-navy); }
 
-.aw-jrow--skeleton { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 1.6rem 1.5rem; animation: aw-jpulse 1.6s ease-in-out infinite; }
-.aw-jrow--skeleton i { display: block; height: 0.95rem; border-radius: 0.5rem; background: var(--aw-tint); }
-.aw-jrow--skeleton i:first-child { width: 70%; }
+.aw-jrow__title {
+  grid-column: 1; margin: 0;
+  font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem); line-height: 1.25; letter-spacing: -0.018em; font-weight: 600;
+  color: var(--aw-ink); text-wrap: balance;
+}
+.aw-jrow__meta { grid-column: 1; margin: 0; font-size: 1rem; line-height: 1.45; color: var(--aw-muted); }
+.aw-jrow__meta span { white-space: nowrap; }
+.aw-jrow__meta span + span::before { content: "·"; margin: 0 0.55em; color: var(--aw-light); }
+.aw-jrow__lang { font-weight: 600; color: var(--aw-body); }
+.aw-jrow__chev {
+  grid-column: 2; grid-row: 1 / span 2; flex: none; color: var(--aw-ink);
+  transition: transform var(--aw-dur) var(--aw-ease);
+}
+.aw-jrow a:hover .aw-jrow__chev, .aw-jrow a:focus-visible .aw-jrow__chev { transform: translateX(4px); }
+
+.aw-jrow--skeleton { display: grid; gap: 0.75rem; padding: 1.75rem 0; animation: aw-jpulse 1.6s ease-in-out infinite; }
+.aw-jrow--skeleton i { display: block; height: 1.1rem; border-radius: 0.55rem; background: var(--aw-tint); }
+.aw-jrow--skeleton i:first-child { width: 46%; }
+.aw-jrow--skeleton i:last-child { width: 30%; height: 0.85rem; }
 @keyframes aw-jpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
-.aw-jempty { margin: 0; padding: 3rem 1.5rem; text-align: center; border: 1px dashed var(--aw-pale); border-radius: 1rem; }
-.aw-jempty p { margin: 0; font-size: 1.0625rem; color: var(--aw-body); }
-.aw-jempty p + p { margin-top: 0.5rem; font-size: 0.9375rem; color: var(--aw-muted); }
+.aw-jempty { margin: 0; padding: clamp(3rem, 6vw, 5rem) 0; border-top: 1px solid var(--aw-pale); }
+.aw-jempty p { margin: 0; font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem); letter-spacing: -0.014em; font-weight: 600; color: var(--aw-ink); }
+.aw-jempty p + p { margin-top: 0.5rem; font-size: 1.0625rem; letter-spacing: 0; font-weight: 400; color: var(--aw-muted); }
 
 /* =========================================================================
-   Smaller screens
+   Phones
    ========================================================================= */
-@media (max-width: 62rem) {
-  .aw-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .aw-filter--search { grid-column: 1 / -1; }
-  .aw-jrow a { grid-template-columns: minmax(0, 1fr); }
-  .aw-jrow__meta { justify-content: flex-start; }
-}
-@media (max-width: 30rem) {
-  .aw-filter input, .aw-filter select { font-size: 1rem; }   /* 16px: iPhone does not zoom into the field */
-  .aw-jrow a { padding: 1.1rem 1.1rem; }
-  .aw-jrow__meta { gap: 0.4rem 1rem; }
-  .aw-jrow__more { flex-basis: 100%; }
+@media (max-width: 43.6875rem) {
+  .aw-filters { gap: 0 1.5rem; }
+  .aw-filter--search input { height: 3.5rem; font-size: 1.125rem; }   /* >16px: iPhone does not zoom into the field */
+  .aw-filter select { font-size: 1rem; height: 2.75rem; }
+  .aw-jrow a { gap: 0.35rem 1rem; }
+  .aw-jrow__chev { align-self: start; margin-top: 0.2rem; }
 }
 
 /* =========================================================================
@@ -149,9 +177,10 @@
    ========================================================================= */
 @media (prefers-reduced-motion: reduce) {
   .aw-jrow--skeleton { animation: none; }
-  .aw-jrow__more svg { transition: none; }
-  .aw-jrow a:hover .aw-jrow__more svg { transform: none; }
+  .aw-jrow__chev, .aw-jrow a::before { transition: none; }
+  .aw-jrow a:hover .aw-jrow__chev { transform: none; }
 }
 @media (prefers-contrast: more) {
-  .aw-filter input, .aw-filter select, .aw-jrows, .aw-jrow + .aw-jrow { border-color: var(--aw-navy); }
+  .aw-filter--search, .aw-jrows, .aw-jrow, .aw-jempty { border-color: var(--aw-navy); }
+  .aw-jobsp { --aw-muted: #34496f; }
 }
