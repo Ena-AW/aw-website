@@ -124,12 +124,32 @@
 
     // Telefone: só dígitos (e um "+" inicial para indicativos)
     var phoneField = document.getElementById('esPhoneField');
+    function cleanPhone(value) {
+      var hasLeadingPlus = value.trim().indexOf('+') === 0;
+      return (hasLeadingPlus ? '+' : '') + value.replace(/[^0-9]/g, '');
+    }
+    function sanitizePhone() {
+      var clean = cleanPhone(phoneField.value);
+      if (phoneField.value !== clean) phoneField.value = clean;
+    }
     if (phoneField) {
-      phoneField.addEventListener('input', function () {
-        var hasLeadingPlus = this.value.indexOf('+') === 0;
-        var digitsOnly = this.value.replace(/[^0-9]/g, '');
-        this.value = (hasLeadingPlus ? '+' : '') + digitsOnly;
+      // 1. Bloqueia letras antes de aparecerem (teclado, colar, arrastar)
+      phoneField.addEventListener('beforeinput', function (e) {
+        if (!e.data || e.inputType.indexOf('insert') !== 0) return;
+        var atStart = phoneField.selectionStart === 0 && phoneField.value.indexOf('+') !== 0;
+        var allowed = e.data.replace(atStart ? /[^0-9+]/g : /[^0-9]/g, '').replace(/(?!^)\+/g, '');
+        if (allowed !== e.data) {
+          e.preventDefault();
+          if (allowed && e.inputType !== 'insertCompositionText') {
+            phoneField.setRangeText(allowed, phoneField.selectionStart, phoneField.selectionEnd, 'end');
+            sanitizePhone();
+          }
+        }
       });
+      // 2. Limpa o que escapar (preenchimento automático, teclados móveis)
+      phoneField.addEventListener('input', sanitizePhone);
+      phoneField.addEventListener('change', sanitizePhone);
+      phoneField.addEventListener('blur', sanitizePhone);
     }
 
     // Contador de caracteres na mensagem
@@ -154,6 +174,7 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       setStatus('', '');
+      if (phoneField) sanitizePhone();   // última limpeza antes de enviar
 
       var data = Object.fromEntries(new FormData(form).entries());
 
