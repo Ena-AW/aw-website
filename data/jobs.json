@@ -1,0 +1,79 @@
+[
+  {
+    "slug": "german-gaming-support-specialist",
+    "title": "German Gaming Support Specialist",
+    "location": "Lisbon, Portugal",
+    "locationSlug": "lisbon-portugal",
+    "country": "Portugal",
+    "position": "Customer Support",
+    "language": "German",
+    "employmentType": "Full-time",
+    "workModel": "On-site"
+  },
+  {
+    "slug": "digital-sales-specialist-with-english",
+    "title": "Digital Sales Specialist with English",
+    "location": "Lisbon, Portugal",
+    "locationSlug": "lisbon-portugal",
+    "country": "Portugal",
+    "position": "Sales",
+    "language": "English",
+    "employmentType": "Full-time",
+    "workModel": "On-site"
+  },
+  {
+    "slug": "support-solutions-advisor-with-german",
+    "title": "Support Solutions Advisor with German",
+    "location": "Athens, Attica, Greece",
+    "locationSlug": "athens-greece",
+    "country": "Greece",
+    "position": "Customer Support",
+    "language": "German",
+    "employmentType": "Full-time",
+    "workModel": "On-site"
+  },
+  {
+    "slug": "guest-experience-associate-german-speaking",
+    "title": "Guest Experience Associate German-Speaking (Travel & Accommodation)",
+    "location": "Gdańsk, Pomeranian Voivodeship, Poland",
+    "locationSlug": "gdansk",
+    "country": "Poland",
+    "position": "Customer Service",
+    "language": "German",
+    "employmentType": "Full-time",
+    "workModel": "On-site"
+  },
+  {
+    "slug": "reddit-german-digital-ads-sales-consultant",
+    "title": "Reddit German Digital Ads Sales Consultant",
+    "location": "Lisbon, Portugal",
+    "locationSlug": "lisbon-portugal",
+    "country": "Portugal",
+    "position": "Sales",
+    "language": "German",
+    "employmentType": "Full-time",
+    "workModel": "On-site"
+  },
+  {
+    "slug": "dutch-speaking-social-media-consultant",
+    "title": "Dutch-Speaking Social Media Consultant",
+    "location": "Portugal",
+    "locationSlug": "portugal",
+    "country": "Portugal",
+    "position": "Content & Social Media",
+    "language": "Dutch",
+    "employmentType": "Full-time",
+    "workModel": "On-site"
+  },
+  {
+    "slug": "health-care-consultant-with-german",
+    "title": "Health Care Consultant with German",
+    "location": "Athens, Greece",
+    "locationSlug": "athens-greece",
+    "country": "Greece",
+    "position": "Customer Support",
+    "language": "German",
+    "employmentType": "Full-time",
+    "workModel": "On-site"
+  }
+]

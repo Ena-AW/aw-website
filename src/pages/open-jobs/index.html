@@ -1,0 +1,72 @@
+<!-- nav: jobs -->
+<!DOCTYPE html>
+<html lang="en" data-root="{{root}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open Jobs — Atlean World</title>
+<meta name="description" content="Open jobs for multilingual professionals in Portugal, Greece, Poland, Bulgaria and Cyprus.">
+<link rel="icon" href="{{root}}favicon.ico" sizes="any">
+<link rel="icon" href="{{root}}media/brand/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="{{root}}media/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="{{root}}assets/css/site.css">
+<link rel="stylesheet" href="{{root}}assets/css/jobs.css">
+<script src="{{root}}assets/js/site.js" defer></script>
+<script src="{{root}}assets/js/jobs.js" defer></script>
+</head>
+<body>
+
+<!-- include:header -->
+
+<main class="aw-jobsp" id="content">
+
+  <!-- ========================================================================
+       1. BANNER · the map image (media/banners/jobs.jpg), the "A" mark and the title
+       ======================================================================== -->
+  <section class="aw-jbanner" aria-labelledby="aw-jobs-title">
+    <div class="aw-jbanner__inner">
+      <img class="aw-jbanner__mark" src="{{root}}media/brand/favicon.png" alt="" width="56" height="55">
+      <h1 class="aw-jbanner__title" id="aw-jobs-title">Explore your next job <span>without boundaries</span></h1>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       2. FILTERS + LIST · filled by jobs.js from data/jobs.json
+       ======================================================================== -->
+  <section class="aw-jlist" aria-label="Open jobs">
+    <div class="aw-jwrap">
+      <form class="aw-filters" id="aw-filters" role="search" aria-label="Filter jobs">
+        <label class="aw-filter aw-filter--search">
+          <span class="aw-vh">Search jobs</span>
+          <input type="search" name="q" placeholder="Search" autocomplete="off" enterkeyhint="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </label>
+        <label class="aw-filter"><span class="aw-vh">Job location</span>
+          <select name="location"><option value="">All Job Location</option></select></label>
+        <label class="aw-filter"><span class="aw-vh">Job position</span>
+          <select name="position"><option value="">All Job Position</option></select></label>
+        <label class="aw-filter"><span class="aw-vh">Language</span>
+          <select name="language"><option value="">All Language</option></select></label>
+        <label class="aw-filter"><span class="aw-vh">Work model</span>
+          <select name="model"><option value="">All Work Model</option></select></label>
+      </form>
+
+      <div class="aw-jbar">
+        <p class="aw-jcount" id="aw-jcount" aria-live="polite"></p>
+        <button type="button" class="aw-jclear" id="aw-jclear" hidden>Clear filters</button>
+      </div>
+
+      <ul class="aw-jrows" id="aw-jrows" aria-busy="true">
+        <li class="aw-jrow aw-jrow--skeleton" aria-hidden="true"><i></i><i></i></li>
+        <li class="aw-jrow aw-jrow--skeleton" aria-hidden="true"><i></i><i></i></li>
+        <li class="aw-jrow aw-jrow--skeleton" aria-hidden="true"><i></i><i></i></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- include:footer -->
+
+</body>
+</html>
