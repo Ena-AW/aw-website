@@ -11,7 +11,7 @@ Each page in src/pages/ is plain HTML with three small placeholders:
 src/pages/index.html            -> _site/index.html
 src/pages/about-us/index.html   -> _site/about-us/index.html  (URL: /about-us/)
 
-assets/, data/ and media/ are copied as they are.
+assets/, data/ and media/ are copied as they are; files in static/ go to the site root.
 
 Usage:  python build.py           build once
         python build.py --serve   build, then serve on http://localhost:8000
@@ -68,6 +68,9 @@ def build():
     for name in STATIC_DIRS:
         if (ROOT / name).is_dir():
             shutil.copytree(ROOT / name, OUT / name)
+    # static/ holds files that must sit at the site root (favicon.ico, robots.txt, ...)
+    if (ROOT / "static").is_dir():
+        shutil.copytree(ROOT / "static", OUT, dirs_exist_ok=True)
     (OUT / ".nojekyll").touch()   # GitHub Pages: serve files as they are
 
     print(f"Built {len(pages)} page(s) into {OUT.relative_to(ROOT)}/")
