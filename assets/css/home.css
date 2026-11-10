@@ -161,6 +161,41 @@ html:has(.aw-home) { scroll-padding-top: 0; }
 }
 .aw-home .aw-hero__more:hover, .aw-home .aw-hero__more:focus { color: #fff; text-decoration-thickness: 0.12em; }
 
+/* O vídeo tem o seu próprio texto ao centro ("NEW CITIES", "NEW OPPORTUNITIES").
+   O bloco do hero fica sempre fora dessa faixa central:
+   - ecrã largo: título à esquerda, subtítulo e botões à direita, tudo junto ao fundo;
+   - telemóvel/tablet: título em cima, subtítulo e botões em baixo. */
+@media (min-width: 56.25rem) {
+  .aw-home .aw-hero__inner {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 25rem);
+    align-items: end; column-gap: clamp(2rem, 5vw, 5rem);
+    padding-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+  .aw-home .aw-hero__title { font-size: min(clamp(2.6rem, 5.4vw, 6rem), 8.5svh); }
+  .aw-home .aw-hero__aside { justify-self: end; margin-right: 4.5rem; }   /* deixa espaço ao botão de pausa */
+  .aw-home .aw-hero__actions { margin-top: 0; }
+}
+@media (max-width: 56.1875rem) {
+  .aw-home .aw-hero { align-items: stretch; }
+  .aw-home .aw-hero__inner {
+    display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
+    padding-top: clamp(1.75rem, 6vw, 3rem);
+  }
+  .aw-home .aw-hero__title { padding-right: 3.25rem; font-size: clamp(2.4rem, 0.8rem + 6.4vw, 4.5rem); }   /* espaço para o botão de pausa */
+}
+
+/* botão em cima, "Meet Atlean World" centrado por baixo (no telemóvel o par fica ao centro do ecrã) */
+.aw-home .aw-hero__actions { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 1.1rem; }
+@media (max-width: 56.1875rem) {
+  .aw-home .aw-hero__aside { align-self: center; }
+}
+
+/* botão principal do hero: o alvo maior da página (56px de altura, texto a 19px) */
+.aw-home .aw-hero .aw-btn {
+  min-height: 3.5rem; padding: 0.95rem 2rem;
+  font-size: 1.1875rem; font-weight: 600; letter-spacing: -0.012em;
+}
+
 /* controlo de pausa: vidro leve sobre o vídeo, com o rebordo de cima a apanhar luz */
 .aw-home button.aw-hero__toggle {
   position: absolute; right: var(--aw-gutter); top: 1rem;
