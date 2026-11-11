@@ -27,3 +27,13 @@ Atlean Talks: build.py reads the posts from `data/posts.json` (later from Supaba
 Preview locally: `python build.py --serve`, then open http://localhost:8000.
 
 Every push to `main` builds the site and publishes it to GitHub Pages (`.github/workflows/pages.yml`).
+
+## Admin panel (`/admin/`)
+
+Sign in with Google, using an Atlean account. Tabs: **Jobs**, **Atlean Talks**, **Media** and **Users** (admins only).
+
+- Data lives in the Atleable Supabase project, in its own `website` schema (`supabase/migrations/`), so it never touches Atleable's tables. Row-level security lets visitors read only published jobs and articles; only people listed under Users can change anything.
+- Media files go to the public `media` storage bucket, in folders (logos, images, videos, documents, blog).
+- Saving anything calls the `website-rebuild` Edge Function (`supabase/functions/`), which starts the GitHub Pages workflow. The site updates in about a minute.
+- `build.py` reads jobs and articles from Supabase when the repository variables `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set (Settings → Secrets and variables → Actions → Variables); otherwise it uses the JSON files in `data/`.
+- `assets/vendor/supabase` (supabase-js 2.45.4, MIT) and `assets/vendor/quill` (Quill 2.0.2, BSD-3) are kept in the repo, so the panel doesn't depend on a CDN.
