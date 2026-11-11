@@ -30,7 +30,9 @@ Every push to `main` builds the site and publishes it to GitHub Pages (`.github/
 
 ## Admin panel (`/admin/`)
 
-Sign in with Google, using an Atlean account. Tabs: **Jobs**, **Atlean Talks**, **Media** and **Users** (admins only).
+Sign in with Google, using an Atlean account. Tabs: **Jobs**, **Atlean Talks**, **Home page** (the 3–5 spotlight jobs, in order), **Social media** (planner for Instagram, Facebook and LinkedIn: calendar, list, composer with previews), **Media** and **Users** (admins only).
+
+Article authors get their photo from `media/team/web/<first-last>.webp` when the name matches ("Pedro Maia" → `pedro-maia.webp`); it can be switched off per article.
 
 - Data lives in the Atleable Supabase project, in its own `website` schema (`supabase/migrations/`), so it never touches Atleable's tables. Row-level security lets visitors read only published jobs and articles; only people listed under Users can change anything.
 - Media files go to the public `media` storage bucket, in folders (logos, images, videos, documents, blog).

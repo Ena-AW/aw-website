@@ -99,7 +99,10 @@
   display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 1.25rem 0 0;
   font-size: 1rem; color: rgba(255, 255, 255, 0.86);
 }
+.aw-post__meta { align-items: center; }
 .aw-post__meta > * { white-space: nowrap; }
+.aw-post__author { display: inline-flex; align-items: center; gap: 0.55rem; }
+.aw-post__author img { width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5); }
 
 /* =========================================================================
    2. SEARCH + CATEGORY CHIPS
