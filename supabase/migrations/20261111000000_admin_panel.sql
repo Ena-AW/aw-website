@@ -1,6 +1,12 @@
--- AW website: jobs, Atlean Talks posts, team logins and the media bucket.
--- Public visitors (the anon key) can only read published rows; everything
--- else needs a signed-in team member listed in website.profiles.
+-- AW website: jobs, Atlean Talks posts, website team and the media bucket.
+-- Lives in the Atleable (ATS) Supabase project, in its own "website" schema,
+-- so it never mixes with Atleable's tables. Logins are the same Atlean
+-- accounts as Atleable; website.profiles says who may use the website admin.
+-- Public visitors (the anon key) can only read published rows.
+-- "website" must be listed in Settings > Data API > Exposed schemas.
+
+create schema if not exists website;
+grant usage on schema website to anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------- team
 create table website.profiles (
@@ -29,7 +35,35 @@ alter table website.profiles enable row level security;
 create policy "staff read team" on website.profiles for select to authenticated using ((select website.is_staff()));
 create policy "admins change team" on website.profiles for update to authenticated using ((select website.is_admin())) with check ((select website.is_admin()));
 create policy "admins remove team" on website.profiles for delete to authenticated using ((select website.is_admin()) and id <> (select auth.uid()));
--- New members are added by the invite-user Edge Function (service role).
+
+-- Website access is given to people who already have an Atlean login (the
+-- same login as Atleable). Admins call this with an email address; nobody's
+-- account is created or deleted from the website.
+create or replace function website.grant_access(p_email text, p_role text default 'editor', p_name text default null)
+returns website.profiles
+language plpgsql security definer set search_path = '' as $$
+declare
+  u auth.users;
+  result website.profiles;
+begin
+  if not website.is_admin() then
+    raise exception 'Only admins can give access.' using errcode = '42501';
+  end if;
+  select * into u from auth.users where lower(email) = lower(trim(p_email)) limit 1;
+  if u.id is null then
+    raise exception 'No Atlean login uses %. They need an Atleable account first.', p_email using errcode = 'P0002';
+  end if;
+  insert into website.profiles (id, email, full_name, role)
+  values (u.id, lower(u.email),
+          coalesce(nullif(trim(p_name), ''), u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name', split_part(u.email, '@', 1)),
+          case when p_role = 'admin' then 'admin' else 'editor' end)
+  on conflict (id) do update set role = excluded.role, full_name = excluded.full_name
+  returning * into result;
+  return result;
+end;
+$$;
+revoke execute on function website.grant_access(text, text, text) from anon, public;
+grant execute on function website.grant_access(text, text, text) to authenticated;
 
 -- ---------------------------------------------------------------- shared
 create or replace function website.touch_updated() returns trigger
@@ -68,7 +102,8 @@ create index jobs_status_idx on website.jobs (status);
 create trigger jobs_touch before update on website.jobs for each row execute function website.touch_updated();
 
 alter table website.jobs enable row level security;
-create policy "public reads published jobs" on website.jobs for select to anon, authenticated using (status = 'published' or (select website.is_staff()));
+create policy "public reads published jobs" on website.jobs for select to anon using (status = 'published');
+create policy "staff read all jobs" on website.jobs for select to authenticated using (status = 'published' or (select website.is_staff()));
 create policy "staff add jobs"    on website.jobs for insert to authenticated with check ((select website.is_staff()));
 create policy "staff edit jobs"   on website.jobs for update to authenticated using ((select website.is_staff())) with check ((select website.is_staff()));
 create policy "staff remove jobs" on website.jobs for delete to authenticated using ((select website.is_staff()));
@@ -93,7 +128,8 @@ create index posts_status_idx on website.posts (status, published_at desc);
 create trigger posts_touch before update on website.posts for each row execute function website.touch_updated();
 
 alter table website.posts enable row level security;
-create policy "public reads published posts" on website.posts for select to anon, authenticated using (status = 'published' or (select website.is_staff()));
+create policy "public reads published posts" on website.posts for select to anon using (status = 'published');
+create policy "staff read all posts" on website.posts for select to authenticated using (status = 'published' or (select website.is_staff()));
 create policy "staff add posts"    on website.posts for insert to authenticated with check ((select website.is_staff()));
 create policy "staff edit posts"   on website.posts for update to authenticated using ((select website.is_staff())) with check ((select website.is_staff()));
 create policy "staff remove posts" on website.posts for delete to authenticated using ((select website.is_staff()));

@@ -1,7 +1,7 @@
 // Atlean World admin panel: jobs, Atlean Talks, media library and team.
 // Plain JavaScript on top of supabase-js (assets/vendor/supabase) and the
 // Quill editor (assets/vendor/quill). Data lives in Supabase; saving anything
-// asks GitHub to rebuild the public site (the rebuild-site Edge Function).
+// asks GitHub to rebuild the public site (the website-rebuild Edge Function).
 (function () {
   'use strict';
 
@@ -87,11 +87,11 @@
 
   // Ask GitHub to rebuild the public site. Saving never fails because of this.
   function rebuild() {
-    return sb.functions.invoke('rebuild-site', { body: {} }).then(function (res) {
+    return sb.functions.invoke('website-rebuild', { body: {} }).then(function (res) {
       if (res.error) throw res.error;
       toast('Saved. The website updates in about a minute.', 'ok');
     }).catch(function (e) {
-      console.warn('rebuild-site', e);
+      console.warn('website-rebuild', e);
       toast('Saved. The website could not start updating automatically. Ask an admin to check the rebuild setup.', 'error');
     });
   }
@@ -132,71 +132,40 @@
   }
 
   // ------------------------------------------------------------------ auth
-  var authMode = 'login';
-  function showAuth(mode, message) {
-    authMode = mode;
+  // Sign-in is Google, with the same Atlean accounts as Atleable.
+  function showAuth(message) {
     $('#adm-app').hidden = true;
     $('#adm-auth').hidden = false;
-    $('#adm-login').hidden = mode !== 'login';
-    $('#adm-setpw').hidden = mode !== 'setpw';
-    $('#adm-auth-title').textContent = mode === 'setpw' ? 'Choose your password' : 'Sign in';
-    $('#adm-auth-sub').textContent = mode === 'setpw' ? 'At least 8 characters. You will use it with your email to sign in.' : 'Manage jobs, Atlean Talks and media.';
-    authMsg(message || '');
-  }
-  function authMsg(text, ok) {
     var m = $('#adm-auth-msg');
-    m.textContent = text;
-    m.hidden = !text;
-    m.classList.toggle('adm-msg--ok', !!ok);
+    m.textContent = message || '';
+    m.hidden = !message;
   }
-
-  $('#adm-login').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var f = e.target, btn = $('button[type=submit]', f);
-    btn.disabled = true;
-    sb.auth.signInWithPassword({ email: f.email.value.trim(), password: f.password.value }).then(function (res) {
-      btn.disabled = false;
-      if (res.error) authMsg(res.error.message === 'Invalid login credentials' ? 'Wrong email or password.' : res.error.message);
-    });
-  });
-  $('#adm-forgot').addEventListener('click', function () {
-    var email = $('#adm-login').email.value.trim();
-    if (!email) { authMsg('Type your email above first, then click “Forgot your password?” again.'); return; }
-    sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }).then(function (res) {
-      authMsg(res.error ? res.error.message : 'If that email is on the team, a link to choose a new password is on its way.', !res.error);
-    });
-  });
-  $('#adm-setpw').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var f = e.target;
-    if (f.password.value.length < 8) return authMsg('Use at least 8 characters.');
-    if (f.password.value !== f.password2.value) return authMsg('The two passwords are different.');
-    sb.auth.updateUser({ password: f.password.value }).then(function (res) {
-      if (res.error) return authMsg(res.error.message);
-      history.replaceState(null, '', location.pathname + '#jobs');
-      start();
+  $('#adm-google').addEventListener('click', function () {
+    sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } }).then(function (res) {
+      if (res.error) showAuth(res.error.message);
     });
   });
   $('#adm-signout').addEventListener('click', function () {
-    sb.auth.signOut().then(function () { me = null; showAuth('login'); });
+    sb.auth.signOut().then(function () { me = null; showAuth(); });
   });
+  // Google sends people back with ?error_description=… when sign-in is refused
+  var back = new URLSearchParams(location.search + '&' + location.hash.replace(/^#/, ''));
+  var authError = back.get('error_description');
 
-  // Links in invite and password e-mails come back with "type=invite" or "type=recovery".
-  var arrivedFor = /type=(invite|recovery)/.test(location.hash + location.search) ? 'setpw' : null;
-
-  sb.auth.onAuthStateChange(function (event) {
-    if (event === 'PASSWORD_RECOVERY') { arrivedFor = 'setpw'; showAuth('setpw'); }
-  });
-
+  var starting = null;
   function start() {
-    sb.auth.getSession().then(function (res) {
+    if (starting) return starting;
+    starting = sb.auth.getSession().then(function (res) {
       var session = res.data.session;
-      if (!session) return showAuth('login');
-      if (arrivedFor === 'setpw') { arrivedFor = null; return showAuth('setpw'); }
+      if (!session) {
+        showAuth(authError ? 'Google sign-in was refused: ' + authError.replace(/\+/g, ' ') : '');
+        authError = null;
+        return;
+      }
       return sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(function (p) {
         if (!p.data) {
           sb.auth.signOut();
-          return showAuth('login', 'This account is not on the website team. Ask an admin to invite you.');
+          return showAuth('Your Atlean account does not have access to the website admin yet. Ask an admin to add you under Users.');
         }
         me = p.data;
         $('#adm-me').textContent = me.full_name || me.email;
@@ -204,12 +173,14 @@
         $('#adm-auth').hidden = true;
         $('#adm-app').hidden = false;
         if (!/^#(jobs|talks|media|users)/.test(location.hash)) history.replaceState(null, '', location.pathname + '#jobs');
+        lastHash = location.hash;
         route();
       });
-    });
+    }).finally(function () { starting = null; });
+    return starting;
   }
   sb.auth.onAuthStateChange(function (event) {
-    if (event === 'SIGNED_IN' && !me && authMode === 'login') start();
+    if (event === 'SIGNED_IN' && !me) setTimeout(start, 0);
   });
 
   // ------------------------------------------------------------------ router
@@ -650,12 +621,12 @@
   function usersView(view) {
     view.innerHTML =
       '<div class="adm-head"><h1>Users</h1></div>' +
-      '<p class="adm-lead">Everyone here can manage jobs, articles and media. Admins can also add and remove people.</p>' +
+      '<p class="adm-lead">People sign in with their Atlean account (the same login as Atleable). Add their email here to give them access. Editors manage jobs, articles and media; admins can also add and remove people.</p>' +
       '<form class="adm-invite" novalidate>' +
         '<label class="adm-field"><span>Name</span><input name="full_name" placeholder="Maria Silva"></label>' +
-        '<label class="adm-field"><span>Email *</span><input name="email" type="email" required placeholder="maria@atleanworld.com"></label>' +
+        '<label class="adm-field"><span>Atlean email *</span><input name="email" type="email" required placeholder="maria@atleanworld.com"></label>' +
         '<label class="adm-field"><span>Role</span><select name="role"><option value="editor">Editor</option><option value="admin">Admin</option></select></label>' +
-        '<button class="adm-btn" type="submit">Send invite</button>' +
+        '<button class="adm-btn" type="submit">Give access</button>' +
       '</form>' +
       '<ul class="adm-list adm-users"></ul>';
     var list = $('.adm-users', view);
@@ -676,20 +647,15 @@
 
     $('.adm-invite', view).addEventListener('submit', function (e) {
       e.preventDefault();
-      var f = e.target, btn = $('button', f);
-      if (!f.email.value.trim()) { toast('Type their email address.', 'error'); return; }
+      var f = e.target, btn = $('button', f), email = f.email.value.trim();
+      if (!email) { toast('Type their email address.', 'error'); return; }
       btn.disabled = true;
-      sb.functions.invoke('invite-user', { body: {
-        action: 'invite', email: f.email.value.trim(), full_name: f.full_name.value.trim(), role: f.role.value,
-        redirect_to: location.origin + location.pathname
-      } }).then(function (res) {
+      sb.rpc('grant_access', { p_email: email, p_role: f.role.value, p_name: f.full_name.value.trim() || null }).then(function (res) {
         btn.disabled = false;
-        return functionError(res).then(function (err) {
-          if (err) return toast(err, 'error');
-          toast('Invite sent to ' + f.email.value.trim() + '.', 'ok');
-          f.reset();
-          draw();
-        });
+        if (res.error) return toast(friendly(res.error), 'error');
+        toast(email + ' can now sign in to the admin panel.', 'ok');
+        f.reset();
+        draw();
       });
     });
 
@@ -704,28 +670,16 @@
       if (!e.target.closest('[data-remove]')) return;
       var li = e.target.closest('[data-id]');
       var name = $('strong', li).textContent;
-      confirmDialog('Remove ' + name + '?', 'They will no longer be able to sign in to the admin panel.', 'Remove').then(function (ok) {
+      confirmDialog('Remove ' + name + '?', 'They will no longer be able to use the website admin panel. Their Atleable account is not affected.', 'Remove').then(function (ok) {
         if (!ok) return;
-        sb.functions.invoke('invite-user', { body: { action: 'remove', id: li.dataset.id } }).then(function (res) {
-          return functionError(res).then(function (err) {
-            if (err) return toast(err, 'error');
-            toast(name + ' was removed.', 'ok');
-            draw();
-          });
+        sb.from('profiles').delete().eq('id', li.dataset.id).then(function (res) {
+          if (res.error) return toast(friendly(res.error), 'error');
+          toast(name + ' was removed.', 'ok');
+          draw();
         });
       });
     });
     draw();
-  }
-
-  // Edge Function errors carry the message in the response body.
-  function functionError(res) {
-    if (!res.error) return Promise.resolve(null);
-    var ctx = res.error.context;
-    if (ctx && typeof ctx.json === 'function') {
-      return ctx.json().then(function (b) { return (b && b.error) || res.error.message; }, function () { return res.error.message; });
-    }
-    return Promise.resolve(res.error.message);
   }
 
   start();

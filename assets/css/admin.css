@@ -78,7 +78,9 @@ img { max-width: 100%; }
 .adm-auth__logo { display: block; width: 11rem; height: auto; margin-bottom: 2rem; }
 .adm-auth__title { font-size: 1.75rem; }
 .adm-auth__sub { margin: 0.35rem 0 1.5rem; color: var(--aw-muted); }
-.adm-auth .adm-linkbtn { justify-self: center; font-weight: 500; color: var(--aw-muted); }
+.adm-btn--google { color: var(--aw-ink); background: #fff; box-shadow: inset 0 0 0 1.5px var(--aw-pale); gap: 0.6rem; min-height: 3rem; font-size: 1rem; }
+.adm-btn--google:hover { background: var(--aw-tint); }
+.adm-auth__hint { margin: 0.9rem 0 0; font-size: 0.875rem; color: var(--aw-muted); text-align: center; }
 
 /* =========================================================================
    APP SHELL
