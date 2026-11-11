@@ -69,7 +69,7 @@ def load_posts():
             "slug": r["slug"], "title": r["title"], "date": (r.get("published_at") or "")[:10],
             "category": r.get("category") or "", "author": r.get("author") or "",
             "excerpt": r.get("excerpt") or "", "cover": r.get("cover_url") or "",
-            "body": r.get("body") or "",
+            "body": r.get("body") or "", "showAuthorPhoto": r.get("show_author_photo", True),
         } for r in rows]
         print(f"Loaded {len(posts)} post(s) from Supabase")
     else:
@@ -108,15 +108,34 @@ def write_job_data():
         "employmentType": r["employment_type"], "workModel": r["work_model"],
     } for r in rows]
     spotlight = []
-    for r in rows:
-        if not r.get("spotlight"):
-            continue
+    for r in sorted((r for r in rows if r.get("spotlight")), key=lambda r: r.get("spotlight_order") or 99)[:5]:
         native, code = LANG_CODES.get(r["language"].strip().lower(), (r["language"], ""))
         spotlight.append({"language": native, "languageCode": code, "title": r["title"],
                           "location": r["location"] or r["country"], "url": f"jobs/{r['slug']}/"})
     (OUT / "data" / "jobs.json").write_text(json.dumps(jobs, ensure_ascii=False, indent=1), encoding="utf-8")
     (OUT / "data" / "spotlight-jobs.json").write_text(json.dumps(spotlight, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"Loaded {len(jobs)} job(s) from Supabase, {len(spotlight)} in the spotlight")
+
+
+TEAM_DIR = ROOT / "media" / "team" / "web"
+
+
+def team_photos():
+    """media/team/web/<first-last>.webp, the same photos as the About us page."""
+    return sorted(p.stem for p in TEAM_DIR.glob("*.webp")) if TEAM_DIR.is_dir() else []
+
+
+def author_photo(name, photos):
+    """Match an author's name to a team photo: "Pedro Maia" -> pedro-maia.webp,
+    "Ena" -> ena.webp. A first name alone matches only if one photo has it."""
+    slug = re.sub(r"[^a-z0-9]+", "-", (name or "").lower()).strip("-")
+    if not slug:
+        return None
+    if slug in photos:
+        return slug
+    first = slug.split("-")[0]
+    hits = [p for p in photos if p.split("-")[0] == first]
+    return hits[0] if len(hits) == 1 else None
 
 
 def category_slug(name):
@@ -160,7 +179,12 @@ def render_post(template, post, posts):
         f'<figure class="aw-post__cover"><img src="{esc(post["cover"])}" alt="" width="1076" height="605"></figure>'
         if post["cover"] else ""
     )
-    values["author_html"] = f'<span>By {esc(post["author"])}</span>' if post["author"] else ""
+    photo = author_photo(post["author"], team_photos()) if post.get("showAuthorPhoto", True) else None
+    values["author_html"] = (
+        f'<span class="aw-post__author">'
+        + (f'<img src="{{{{root}}}}media/team/web/{photo}.webp" alt="" width="32" height="32">' if photo else "")
+        + f'By {esc(post["author"])}</span>'
+    ) if post["author"] else ""
     values["category_html"] = (
         f'<a class="aw-post__cat" href="{{{{root}}}}atleantalks/?category={category_slug(post["category"])}">{esc(post["category"])}</a>'
         if post["category"] else ""
@@ -227,6 +251,7 @@ def build():
     write_job_data()
     # the three newest articles, for the Atlean Talks section of the home page
     latest = [{"title": p["title"], "url": f"{p['slug']}/", "date": p["date"], "cover": p["cover"]} for p in posts[:3]]
+    (OUT / "data" / "team-photos.json").write_text(json.dumps(team_photos()), encoding="utf-8")   # for the admin panel
     (OUT / "data" / "talks-latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"Built {len(sources)} page(s), {len(posts)} of them blog posts, into {OUT.relative_to(ROOT)}/")

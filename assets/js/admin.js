@@ -9,7 +9,7 @@
   var ROOT = document.documentElement.getAttribute('data-root') || './';
   var SITE = new URL(ROOT, location.href).href;          // public site root, for "View on site"
   var BUCKET = 'media';
-  var FOLDERS = ['logos', 'images', 'videos', 'documents', 'blog'];
+  var FOLDERS = ['logos', 'images', 'videos', 'documents', 'blog', 'social'];
   var COUNTRIES = ['Portugal', 'Greece', 'Poland', 'Bulgaria', 'Cyprus'];
   var EMPLOYMENT = ['Full-time', 'Part-time', 'Contract', 'Internship'];
   var MODELS = ['On-site', 'Hybrid', 'Remote'];
@@ -48,6 +48,9 @@
   }
   function options(list, value) {
     return list.map(function (v) { return '<option' + (v === value ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('');
+  }
+  function statusOptions(list, value) {
+    return list.map(function (v) { return '<option value="' + v + '"' + (v === value ? ' selected' : '') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>'; }).join('');
   }
   function datalist(id, values) {
     var uniq = values.filter(function (v, i) { return v && values.indexOf(v) === i; }).sort();
@@ -131,6 +134,70 @@
     return /^(<p>(<br>)?<\/p>\s*)*$/.test(html) ? '' : html;
   }
 
+  // The end of a page's link ("slug"). It fills itself in from the title; most
+  // people never touch it, so it shows as the finished link with a Change button.
+  function slugField(prefix, value) {
+    var host = SITE.replace(/^https?:\/\//, '');
+    return '<div class="adm-field adm-span2 adm-link">' +
+      '<span>Link on the website</span>' +
+      '<div class="adm-link__show"><span class="adm-link__url">' + esc(host + prefix) + '<b data-slug-text>' + esc(value || 'filled-in-from-the-title') + '</b>/</span>' +
+        '<button type="button" class="adm-linkbtn" data-slug-edit>Change</button></div>' +
+      '<div class="adm-link__edit" hidden><span class="adm-slug"><span>' + esc(host + prefix) + '</span><input name="slug" value="' + esc(value) + '" autocapitalize="off" spellcheck="false" aria-label="End of the link"></span>' +
+        '<small>Lowercase letters, numbers and hyphens. Changing it on a published page breaks links people already shared.</small></div>' +
+    '</div>';
+  }
+  function wireSlug(form) {
+    var btn = $('[data-slug-edit]', form);
+    btn.addEventListener('click', function () {
+      $('.adm-link__show', form).hidden = true;
+      $('.adm-link__edit', form).hidden = false;
+      form.slug.focus();
+    });
+    return function sync() { $('[data-slug-text]', form).textContent = form.slug.value || 'filled-in-from-the-title'; };
+  }
+
+  // Save button feedback: "Saving…" while the request runs, Cmd/Ctrl+S saves.
+  function busy(btn, on) {
+    if (on) { btn.dataset.label = btn.textContent; btn.textContent = 'Saving…'; btn.disabled = true; }
+    else { btn.textContent = btn.dataset.label || 'Save'; btn.disabled = false; }
+  }
+  document.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+      var form = $('#adm-view form.adm-edit');
+      if (form) { e.preventDefault(); form.requestSubmit(); }
+    }
+  });
+  function fieldError(input, text) {
+    var label = input.closest('.adm-field');
+    var old = label && $('.adm-field__err', label);
+    if (old) old.remove();
+    if (!text) { input.removeAttribute('aria-invalid'); return; }
+    input.setAttribute('aria-invalid', 'true');
+    if (label) label.insertAdjacentHTML('beforeend', '<small class="adm-field__err">' + esc(text) + '</small>');
+    input.focus();
+  }
+
+  // Team photos (media/team/web/*.webp, listed by build.py) for article authors.
+  var photosPromise = null;
+  function teamPhotos() {
+    if (!photosPromise) {
+      photosPromise = fetch(SITE + 'data/team-photos.json', { cache: 'no-cache' })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .catch(function () { return []; });
+    }
+    return photosPromise;
+  }
+  // Same rule as build.py: full name ("Pedro Maia" -> pedro-maia), or a first
+  // name that only one photo has ("Ena" -> ena).
+  function authorPhoto(name, photos) {
+    var slug = slugify(name);
+    if (!slug || !photos) return null;
+    if (photos.indexOf(slug) !== -1) return slug;
+    var first = slug.split('-')[0];
+    var hits = photos.filter(function (p) { return p.split('-')[0] === first; });
+    return hits.length === 1 ? hits[0] : null;
+  }
+
   // ------------------------------------------------------------------ auth
   // Sign-in is Google, with the same Atlean accounts as Atleable.
   function showAuth(message) {
@@ -172,7 +239,7 @@
         $$('[data-admin-only]').forEach(function (el) { el.hidden = me.role !== 'admin'; });
         $('#adm-auth').hidden = true;
         $('#adm-app').hidden = false;
-        if (!/^#(jobs|talks|media|users)/.test(location.hash)) history.replaceState(null, '', location.pathname + '#jobs');
+        if (!/^#(jobs|talks|home|media|social|users)/.test(location.hash)) history.replaceState(null, '', location.pathname + '#jobs');
         lastHash = location.hash;
         route();
       });
@@ -188,6 +255,14 @@
   window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
   var lastHash = location.hash;
+  // Each tab: a function that, given the id after the slash, returns the view to draw.
+  var views = {
+    jobs: function (id) { return id ? jobEditor : jobsList; },
+    talks: function (id) { return id ? postEditor : postsList; },
+    home: function () { return homeView; },
+    media: function () { return mediaView; },
+    users: function () { return usersView; }
+  };
   function route() {
     var hash = location.hash.replace(/^#/, '');
     if (/access_token|type=/.test(hash)) return;
@@ -206,7 +281,9 @@
     var view = $('#adm-view');
     view.innerHTML = '<p class="adm-loading">Loading…</p>';
     var id = parts[1] ? decodeURIComponent(parts[1]) : null;
-    ({ jobs: id ? jobEditor : jobsList, talks: id ? postEditor : postsList, media: mediaView, users: usersView }[tab] || jobsList)(view, id);
+    if (!views[tab] && tab === 'social') { setTimeout(route, 50); return; }   // its script is still loading
+    var fn = views[tab] ? views[tab](id) : null;
+    (fn || jobsList)(view, id);
     view.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
@@ -288,7 +365,7 @@
         (j.source === 'atleable' ? '<p class="adm-note">This job came from Atleable. Changes you make here are sent back to Atleable once the sync is switched on.</p>' : '') +
         '<div class="adm-grid">' +
           '<label class="adm-field adm-span2"><span>Job title *</span><input name="title" required value="' + esc(j.title) + '"></label>' +
-          '<label class="adm-field adm-span2"><span>Web address</span><span class="adm-slug"><span>' + esc(SITE) + 'jobs/</span><input name="slug" value="' + esc(j.slug) + '" pattern="[a-z0-9]+(-[a-z0-9]+)*"></span></label>' +
+          slugField('jobs/', j.slug) +
           '<label class="adm-field"><span>Country</span><select name="country">' + options(COUNTRIES.indexOf(j.country) < 0 && j.country ? COUNTRIES.concat(j.country) : COUNTRIES, j.country) + '</select></label>' +
           '<label class="adm-field"><span>Location</span><input name="location" list="dl-loc" placeholder="Lisbon, Portugal" value="' + esc(j.location) + '"></label>' +
           '<label class="adm-field"><span>Position</span><input name="position" list="dl-pos" placeholder="Customer Support" value="' + esc(j.position) + '"></label>' +
@@ -300,8 +377,8 @@
           '<div class="adm-field adm-span2"><span>Job description</span><div class="adm-quill" id="adm-desc"></div></div>' +
         '</div>' +
         '<div class="adm-side">' +
-          '<label class="adm-field"><span>Status</span><select name="status">' + options(['draft', 'published', 'closed'], j.status).replace(/>draft</, '>Draft — only the team sees it<').replace(/>published</, '>Published — on the website<').replace(/>closed</, '>Closed — hidden, kept for records<') + '</select></label>' +
-          '<label class="adm-check"><input type="checkbox" name="spotlight"' + (j.spotlight ? ' checked' : '') + '> Spotlight on the home page</label>' +
+          '<label class="adm-field"><span>Status</span><select name="status">' + statusOptions(['draft', 'published', 'closed'], j.status) + '</select><small class="adm-field__help">Draft: only the team sees it. Published: on the website. Closed: hidden, kept for records.</small></label>' +
+          '<p class="adm-small">' + (j.spotlight ? '★ In the home page spotlight. ' : '') + '<a href="#home">Choose the home page spotlight jobs</a></p>' +
           '<div class="adm-actions">' +
             '<button class="adm-btn" type="submit">Save</button>' +
             (isNew ? '' : '<button class="adm-btn adm-btn--danger adm-btn--ghost" type="button" data-delete>Delete</button>') +
@@ -317,15 +394,17 @@
       var q = editor($('#adm-desc', view), 'What the job is, what you offer, who you are looking for…');
       if (j.description) q.clipboard.dangerouslyPasteHTML(j.description, 'silent');
       dirty = false;
+      var syncSlug = wireSlug(form);
       form.addEventListener('input', function (e) {
         dirty = true;
         if (e.target.name === 'slug') slugTouched = true;
-        if (e.target.name === 'title' && !slugTouched) form.slug.value = slugify(form.title.value);
+        if (e.target.name === 'title') { fieldError(form.title, ''); if (!slugTouched) form.slug.value = slugify(form.title.value); }
+        syncSlug();
       });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        if (!form.title.value.trim()) { toast('Give the job a title.', 'error'); form.title.focus(); return; }
+        if (!form.title.value.trim()) { fieldError(form.title, 'Give the job a title.'); return; }
         var slug = slugify(form.slug.value || form.title.value);
         form.slug.value = slug;
         var location_ = form.location.value.trim();
@@ -335,13 +414,13 @@
           position: form.position.value.trim(), language: form.language.value.trim(),
           employment_type: form.employment_type.value, work_model: form.work_model.value,
           salary: form.salary.value.trim(), apply_url: form.apply_url.value.trim(),
-          description: editorHtml(q), status: form.status.value, spotlight: form.spotlight.checked
+          description: editorHtml(q), status: form.status.value
         };
         var btn = $('button[type=submit]', form);
-        btn.disabled = true;
+        busy(btn, true);
         var req = isNew ? sb.from('jobs').insert(row).select('id').single() : sb.from('jobs').update(row).eq('id', id).select('id').single();
         req.then(function (res) {
-          btn.disabled = false;
+          busy(btn, false);
           if (res.error) return toast(friendly(res.error), 'error');
           dirty = false;
           rebuild();
@@ -386,10 +465,11 @@
     Promise.all([
       isNew ? Promise.resolve({ data: { status: 'draft', author: me.full_name || '' } }) : sb.from('posts').select('*').eq('id', id).single(),
       sb.from('posts').select('category,author'),
-      sb.from('profiles').select('full_name')
+      sb.from('profiles').select('full_name'),
+      teamPhotos()
     ]).then(function (r) {
       if (r[0].error) { view.innerHTML = '<p class="adm-empty">' + esc(friendly(r[0].error)) + '</p>'; return; }
-      var p = r[0].data, all = r[1].data || [], team = r[2].data || [];
+      var p = r[0].data, all = r[1].data || [], team = r[2].data || [], photos = r[3];
       var slugTouched = !isNew;
       var live = p.status === 'published' && p.slug;
       view.innerHTML =
@@ -398,14 +478,16 @@
           (live ? '<a class="adm-linkbtn" href="' + esc(SITE + p.slug + '/') + '" target="_blank" rel="noopener">View on site ↗</a>' : '') + '</div>' +
         '<div class="adm-grid">' +
           '<label class="adm-field adm-span2"><span>Title *</span><input name="title" required value="' + esc(p.title) + '"></label>' +
-          '<label class="adm-field adm-span2"><span>Web address</span><span class="adm-slug"><span>' + esc(SITE) + '</span><input name="slug" value="' + esc(p.slug) + '"></span></label>' +
+          slugField('', p.slug) +
           '<label class="adm-field"><span>Category</span><input name="category" list="dl-cat" placeholder="Tips" value="' + esc(p.category) + '"></label>' +
-          '<label class="adm-field"><span>Author</span><input name="author" list="dl-author" value="' + esc(p.author) + '"></label>' +
+          '<div class="adm-field"><label class="adm-field"><span>Author</span><input name="author" list="dl-author" value="' + esc(p.author) + '"></label>' +
+            '<label class="adm-check adm-author"><input type="checkbox" name="show_author_photo"' + (p.show_author_photo === false ? '' : ' checked') + '>' +
+            '<span class="adm-author__img" data-author-img></span><span data-author-note>Show author photo</span></label></div>' +
           '<label class="adm-field adm-span2"><span>Short summary <small>(shown in the list and on Google, about 2 sentences)</small></span><textarea name="excerpt" rows="3" maxlength="320">' + esc(p.excerpt) + '</textarea></label>' +
           '<div class="adm-field adm-span2"><span>Article</span><div class="adm-quill adm-quill--tall" id="adm-body"></div></div>' +
         '</div>' +
         '<div class="adm-side">' +
-          '<label class="adm-field"><span>Status</span><select name="status">' + options(['draft', 'published'], p.status).replace(/>draft</, '>Draft — only the team sees it<').replace(/>published</, '>Published — on the website<') + '</select></label>' +
+          '<label class="adm-field"><span>Status</span><select name="status">' + statusOptions(['draft', 'published'], p.status) + '</select><small class="adm-field__help">Draft: only the team sees it. Published: on the website.</small></label>' +
           '<label class="adm-field"><span>Publish date</span><input type="date" name="date" value="' + esc((p.published_at || '').slice(0, 10) || today) + '"></label>' +
           '<div class="adm-field"><span>Cover image</span>' +
             '<div class="adm-cover" id="adm-cover"></div>' +
@@ -433,18 +515,33 @@
       });
       $('[data-cover-clear]', view).addEventListener('click', function () { cover = ''; dirty = true; drawCover(); });
 
+      function drawAuthor() {
+        var photo = authorPhoto(form.author.value, photos);
+        var on = form.show_author_photo.checked;
+        $('[data-author-img]', view).innerHTML = photo ? '<img src="' + esc(SITE + 'media/team/web/' + photo + '.webp') + '" alt="">' : '';
+        $('[data-author-img]', view).hidden = !photo;
+        $('[data-author-note]', view).textContent = !form.author.value.trim() ? 'Show author photo'
+          : photo ? (on ? 'Photo shown next to the name' : 'Show author photo')
+          : 'No team photo matches this name';
+      }
+      form.author.addEventListener('input', drawAuthor);
+      form.show_author_photo.addEventListener('change', drawAuthor);
+      drawAuthor();
+
       var q = editor($('#adm-body', view), 'Write the article. Use the H2/H3 menu for section titles.');
       if (p.body) q.clipboard.dangerouslyPasteHTML(p.body, 'silent');
       dirty = false;
+      var syncSlug = wireSlug(form);
       form.addEventListener('input', function (e) {
         dirty = true;
         if (e.target.name === 'slug') slugTouched = true;
-        if (e.target.name === 'title' && !slugTouched) form.slug.value = slugify(form.title.value);
+        if (e.target.name === 'title') { fieldError(form.title, ''); if (!slugTouched) form.slug.value = slugify(form.title.value); }
+        syncSlug();
       });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        if (!form.title.value.trim()) { toast('Give the article a title.', 'error'); form.title.focus(); return; }
+        if (!form.title.value.trim()) { fieldError(form.title, 'Give the article a title.'); return; }
         var slug = slugify(form.slug.value || form.title.value);
         form.slug.value = slug;
         var reserved = ['admin', 'atleantalks', 'open-jobs', 'jobs', 'about-us', 'employer-solutions', 'privacy-policy', 'terms-and-conditions', 'assets', 'data', 'media'];
@@ -454,6 +551,7 @@
           title: form.title.value.trim(), slug: slug,
           category: form.category.value.trim(), author: form.author.value.trim(),
           excerpt: form.excerpt.value.trim(), body: body, cover_url: cover,
+          show_author_photo: form.show_author_photo.checked,
           status: form.status.value,
           published_at: form.date.value ? form.date.value + 'T09:00:00Z' : null
         };
@@ -461,10 +559,10 @@
           row.excerpt = q.getText().trim().replace(/\s+/g, ' ').slice(0, 220);
         }
         var btn = $('button[type=submit]', form);
-        btn.disabled = true;
+        busy(btn, true);
         var req = isNew ? sb.from('posts').insert(row).select('id').single() : sb.from('posts').update(row).eq('id', id).select('id').single();
         req.then(function (res) {
-          btn.disabled = false;
+          busy(btn, false);
           if (res.error) return toast(friendly(res.error), 'error');
           dirty = false;
           rebuild();
@@ -484,6 +582,99 @@
           });
         });
       });
+    });
+  }
+
+  // ------------------------------------------------------------------ home page (spotlight jobs)
+  var SPOT_MAX = 5, SPOT_BEST = 3;
+  function homeView(view) {
+    view.innerHTML =
+      '<div class="adm-head"><h1>Home page</h1></div>' +
+      '<p class="adm-lead">Choose the jobs in the home page’s “Spotlight jobs” section, in the order they appear. Three look best; five at most. Only published jobs can be picked.</p>' +
+      '<div class="adm-spot">' +
+        '<section class="adm-card">' +
+          '<div class="adm-card__head"><h2>In the spotlight</h2><span class="adm-pill adm-pill--draft" data-spot-count></span></div>' +
+          '<ol class="adm-spot__chosen" data-chosen></ol>' +
+          '<p class="adm-small" data-spot-hint></p>' +
+          '<div class="adm-actions"><button class="adm-btn" type="button" data-save>Save</button></div>' +
+        '</section>' +
+        '<section class="adm-card">' +
+          '<div class="adm-card__head"><h2>Published jobs</h2></div>' +
+          '<input class="adm-search" type="search" placeholder="Search published jobs" aria-label="Search published jobs">' +
+          '<ul class="adm-spot__all" data-all></ul>' +
+        '</section>' +
+      '</div>';
+
+    var jobs = [], chosen = [], q = '';
+    function byId(id) { return jobs.filter(function (j) { return j.id === id; })[0]; }
+    function meta(j) { return [j.language, j.location].filter(Boolean).map(esc).join(' · '); }
+
+    function draw() {
+      $('[data-spot-count]', view).textContent = chosen.length + ' of ' + SPOT_MAX;
+      $('[data-chosen]', view).innerHTML = chosen.length ? chosen.map(function (id, i) {
+        var j = byId(id);
+        return '<li class="adm-spot__row" data-id="' + id + '">' +
+          '<span class="adm-spot__n">' + (i + 1) + '</span>' +
+          '<span class="adm-row__main"><strong>' + esc(j.title) + '</strong><span class="adm-row__meta">' + meta(j) + '</span></span>' +
+          '<span class="adm-spot__btns">' +
+            '<button type="button" class="adm-icon" data-move="-1" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+            '<button type="button" class="adm-icon" data-move="1" aria-label="Move down"' + (i === chosen.length - 1 ? ' disabled' : '') + '>↓</button>' +
+            '<button type="button" class="adm-icon adm-icon--danger" data-remove aria-label="Remove from spotlight">✕</button>' +
+          '</span></li>';
+      }).join('') : '<li class="adm-empty">No spotlight jobs yet. Add some from the list.</li>';
+
+      $('[data-spot-hint]', view).textContent =
+        chosen.length === SPOT_MAX ? 'That’s the maximum. Remove one to add another.'
+        : chosen.length < SPOT_BEST ? 'Add ' + (SPOT_BEST - chosen.length) + ' more for the best-looking home page.'
+        : '';
+
+      var words = q.toLowerCase().split(/\s+/).filter(Boolean);
+      var list = jobs.filter(function (j) {
+        var text = (j.title + ' ' + j.language + ' ' + j.location).toLowerCase();
+        return words.every(function (w) { return text.indexOf(w) !== -1; });
+      });
+      $('[data-all]', view).innerHTML = list.length ? list.map(function (j) {
+        var on = chosen.indexOf(j.id) !== -1;
+        return '<li class="adm-spot__row" data-id="' + j.id + '">' +
+          '<span class="adm-row__main"><strong>' + esc(j.title) + '</strong><span class="adm-row__meta">' + meta(j) + '</span></span>' +
+          (on ? '<span class="adm-small">In spotlight</span>'
+              : '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-add' + (chosen.length >= SPOT_MAX ? ' disabled' : '') + '>Add</button>') +
+          '</li>';
+      }).join('') : '<li class="adm-empty">' + (jobs.length ? 'Nothing matches.' : 'No published jobs yet.') + '</li>';
+    }
+
+    $(".adm-spot", view).addEventListener('click', function (e) {
+      var row = e.target.closest('[data-id]');
+      if (!row) return;
+      var id = row.dataset.id, at = chosen.indexOf(id);
+      if (e.target.closest('[data-add]') && at === -1 && chosen.length < SPOT_MAX) chosen.push(id);
+      else if (e.target.closest('[data-remove]')) chosen.splice(at, 1);
+      else if (e.target.closest('[data-move]')) {
+        var to = at + Number(e.target.closest('[data-move]').dataset.move);
+        chosen.splice(to, 0, chosen.splice(at, 1)[0]);
+      } else return;
+      dirty = true;
+      draw();
+    });
+    $('.adm-search', view).addEventListener('input', function (e) { q = e.target.value; draw(); });
+    $('[data-save]', view).addEventListener('click', function (e) {
+      var btn = e.currentTarget;
+      busy(btn, true);
+      sb.rpc('set_spotlight', { p_ids: chosen }).then(function (res) {
+        busy(btn, false);
+        if (res.error) return toast(friendly(res.error), 'error');
+        dirty = false;
+        rebuild();
+      });
+    });
+
+    sb.from('jobs').select('id,title,language,location,spotlight,spotlight_order').eq('status', 'published').order('title').then(function (res) {
+      if (res.error) { $('[data-all]', view).innerHTML = '<li class="adm-empty">' + esc(friendly(res.error)) + '</li>'; return; }
+      jobs = res.data || [];
+      chosen = jobs.filter(function (j) { return j.spotlight; })
+        .sort(function (a, b) { return (a.spotlight_order || 99) - (b.spotlight_order || 99); })
+        .slice(0, SPOT_MAX).map(function (j) { return j.id; });
+      draw();
     });
   }
 
@@ -523,7 +714,13 @@
     }));
   }
 
-  function mediaGrid(container, folder, onPick) {
+  // pick (optional): { kinds: ['image', 'video'], multiple: bool, done: function (files) }
+  function mediaGrid(container, folder, pick) {
+    var onPick = pick && pick.done;
+    var chosen = [];
+    var host = container;              // a fresh wrapper each time, so listeners never pile up
+    container = document.createElement("div");
+    host.replaceChildren(container);
     container.innerHTML =
       '<div class="adm-tools">' +
         '<div class="adm-seg" role="group" aria-label="Folder">' +
@@ -533,26 +730,42 @@
       '</div>' +
       '<div class="adm-drop" hidden>Drop files to upload</div>' +
       '<p class="adm-count" aria-live="polite"></p>' +
-      '<ul class="adm-media"></ul>';
+      '<ul class="adm-media"></ul>' +
+      (pick && pick.multiple ? '<div class="adm-picker__foot"><span data-chosen>Nothing selected</span><button type="button" class="adm-btn" data-add disabled>Add</button></div>' : '');
     var grid = $('.adm-media', container), count = $('.adm-count', container);
+    function drawChosen() {
+      var add = $('[data-add]', container);
+      if (!add) return;
+      $('[data-chosen]', container).textContent = chosen.length ? chosen.length + ' selected' : 'Nothing selected';
+      add.disabled = !chosen.length;
+      add.textContent = chosen.length > 1 ? 'Add ' + chosen.length + ' files' : 'Add';
+      $$('.adm-media__item', container).forEach(function (li) {
+        var i = chosen.map(function (c) { return c.url; }).indexOf(li.dataset.url);
+        li.classList.toggle('is-chosen', i !== -1);
+        var badge = $('.adm-media__n', li);
+        if (badge) badge.textContent = i !== -1 ? i + 1 : '';
+      });
+    }
+    if (pick && pick.multiple) $('[data-add]', container).addEventListener('click', function () { onPick(chosen.slice()); });
 
     function draw() {
       count.textContent = 'Loading…';
       listFolder(folder).then(function (files) {
-        if (onPick) files = files.filter(function (f) { return f.kind === 'image'; });
+        if (pick) files = files.filter(function (f) { return (pick.kinds || ['image']).indexOf(f.kind) !== -1; });
         count.textContent = files.length + (files.length === 1 ? ' file' : ' files') + ' in ' + folder;
         grid.innerHTML = files.length ? files.map(function (f) {
           var url = publicUrl(f.path);
           var preview = f.kind === 'image' ? '<img src="' + esc(url) + '" alt="" loading="lazy">'
             : f.kind === 'video' ? '<video src="' + esc(url) + '#t=0.5" preload="metadata" muted></video>'
             : '<span class="adm-media__icon">' + esc((f.name.split('.').pop() || 'file').toUpperCase()) + '</span>';
-          return '<li class="adm-media__item" data-path="' + esc(f.path) + '" data-url="' + esc(url) + '">' +
-            (onPick ? '<button type="button" class="adm-media__pick" data-pick>' + preview + '</button>' : '<a class="adm-media__preview" href="' + esc(url) + '" target="_blank" rel="noopener">' + preview + '</a>') +
+          return '<li class="adm-media__item" data-path="' + esc(f.path) + '" data-url="' + esc(url) + '" data-kind="' + f.kind + '">' +
+            (onPick ? '<button type="button" class="adm-media__pick" data-pick>' + preview + '<span class="adm-media__n" aria-hidden="true"></span></button>' : '<a class="adm-media__preview" href="' + esc(url) + '" target="_blank" rel="noopener">' + preview + '</a>') +
             '<span class="adm-media__name" title="' + esc(f.name) + '">' + esc(f.name) + '</span>' +
             '<span class="adm-media__meta">' + fmtSize(f.size) + ' · ' + fmtDate(f.created) + '</span>' +
             (onPick ? '' : '<span class="adm-media__btns"><button type="button" class="adm-linkbtn" data-copy>Copy link</button><button type="button" class="adm-linkbtn adm-linkbtn--danger" data-del>Delete</button></span>') +
             '</li>';
         }).join('') : '<li class="adm-empty">This folder is empty. Upload files with the button above or drop them here.</li>';
+        drawChosen();
       }).catch(function (e) { count.textContent = friendly(e); });
     }
 
@@ -582,7 +795,13 @@
     grid.addEventListener('click', function (e) {
       var item = e.target.closest('.adm-media__item');
       if (!item) return;
-      if (e.target.closest('[data-pick]')) return onPick(item.dataset.url);
+      if (e.target.closest('[data-pick]')) {
+        var file = { url: item.dataset.url, kind: item.dataset.kind };
+        if (!pick.multiple) return onPick([file]);
+        var at = chosen.map(function (c) { return c.url; }).indexOf(file.url);
+        if (at === -1) chosen.push(file); else chosen.splice(at, 1);
+        return drawChosen();
+      }
       if (e.target.closest('[data-copy]')) {
         navigator.clipboard.writeText(item.dataset.url).then(function () { toast('Link copied.', 'ok'); }, function () { window.prompt('Copy this link:', item.dataset.url); });
       }
@@ -605,16 +824,22 @@
     mediaGrid($('#adm-media-body', view), 'images');
   }
 
-  function pickImage(folder) {
+  // Opens the media library in a dialog. Resolves with [{ url, kind }] or [] if closed.
+  function pickMedia(opts) {
+    opts = opts || {};
     var d = $('#adm-picker');
+    $('.adm-dialog__title', d).textContent = opts.title || 'Choose an image';
     return new Promise(function (resolve) {
       var done = false;
-      function finish(url) { if (done) return; done = true; d.close(); resolve(url || null); }
-      mediaGrid($('#adm-picker-body'), folder, finish);
-      $('[data-close]', d).onclick = function () { finish(null); };
-      d.addEventListener('close', function once() { d.removeEventListener('close', once); finish(null); });
+      function finish(files) { if (done) return; done = true; if (d.open) d.close(); resolve(files || []); }
+      mediaGrid($('#adm-picker-body'), opts.folder || 'images', { kinds: opts.kinds || ['image'], multiple: !!opts.multiple, done: finish });
+      $('[data-close]', d).onclick = function () { finish([]); };
+      d.addEventListener('close', function once() { d.removeEventListener('close', once); finish([]); });
       d.showModal();
     });
+  }
+  function pickImage(folder) {
+    return pickMedia({ folder: folder }).then(function (files) { return files[0] ? files[0].url : null; });
   }
 
   // ------------------------------------------------------------------ users
@@ -682,5 +907,15 @@
     draw();
   }
 
-  start();
+  // Shared with the other admin scripts (admin-social.js).
+  window.AWAdmin = {
+    sb: sb, SITE: SITE, views: views, $: $, $$: $$,
+    esc: esc, slugify: slugify, fmtDate: fmtDate, options: options, friendly: friendly,
+    toast: toast, confirmDialog: confirmDialog, pickMedia: pickMedia, busy: busy, fieldError: fieldError,
+    me: function () { return me; },
+    setDirty: function (v) { dirty = !!v; }
+  };
+
+  // after admin-social.js (also deferred) has added its tab
+  document.addEventListener('DOMContentLoaded', start);
 })();
