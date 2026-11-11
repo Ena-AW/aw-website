@@ -1,0 +1,211 @@
+/* =========================================================================
+   ATLEAN WORLD · TERMS AND CONDITIONS + PRIVACY POLICY
+   Tudo limitado a .aw-legal. O banner azul que se dissolve em branco (com o
+   "A" da Atlean) e, depois, o texto numa só coluna de leitura, com o título
+   de cada cláusula à esquerda. .aw-legal--numbered numera as cláusulas.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.aw-legal) { scroll-behavior: smooth; }
+}
+
+.aw-legal {
+  --aw-navy:  #193360;
+  --aw-mid:   #6e87b2;
+  --aw-light: #b9cfea;
+  --aw-pale:  #d7dff2;
+  --aw-tint:  #f4f6fc;
+  --aw-white: #ffffff;
+
+  --aw-ink:   #193360;
+  --aw-body:  #34496f;
+  --aw-muted: #4f668c;
+  --aw-focus: #193360;
+
+  --aw-header: var(--site-header, 90px);
+  --aw-max: 1240px;
+  --aw-gutter: clamp(1.25rem, 4.5vw, 3.5rem);
+  --aw-seam: clamp(5rem, 12vw, 9rem);
+
+  --aw-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  --aw-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --aw-dur-fast: 0.4s;
+
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-x: clip;
+  color-scheme: light;
+  font-family: var(--aw-font);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--aw-body);
+  background: var(--aw-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  .aw-legal {
+    --aw-ease: linear(0, 0.0369, 0.1219, 0.2275, 0.3374, 0.4422, 0.5372, 0.6204, 0.6916, 0.7513, 0.8009, 0.8414, 0.8743, 0.9008, 0.922, 0.9389, 0.9523, 0.9628, 0.9711, 0.9776, 0.9826, 0.9866, 0.9897, 0.992, 0.9939, 0.9953, 0.9964, 0.9972, 0.9979, 0.9984, 1);
+  }
+}
+
+/* ---- reset local ---- */
+.aw-legal *, .aw-legal *::before, .aw-legal *::after { box-sizing: border-box; }
+.aw-legal :where(h1, h2, h3, p, ul, ol) { margin: 0; padding: 0; }
+.aw-legal :where(ul, ol) { list-style: none; }
+.aw-legal :where(h1, h2, h3) { text-wrap: balance; }
+.aw-legal :where(p) { text-wrap: pretty; }
+.aw-legal img { display: block; max-width: 100%; }
+.aw-legal a { color: inherit; text-decoration: none; }
+.aw-legal :focus-visible { outline: 3px solid var(--aw-focus); outline-offset: 3px; }
+
+.aw-legal .aw-wrap { width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin-inline: auto; }
+.aw-legal section { scroll-margin-top: var(--aw-header); }
+
+/* =========================================================================
+   1. BANNER · mais baixo que nas outras páginas: aqui a leitura é o destino
+   ========================================================================= */
+.aw-legal .aw-hero {
+  --aw-focus: #fff;
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-end;
+  min-height: 24rem;
+  min-height: clamp(24rem, 56svh, 34rem);
+  color: #fff;
+  background: linear-gradient(140deg, #12264a 0%, #254477 55%, #4d6a9f 100%);
+}
+.aw-legal .aw-hero::after {
+  content: ""; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: var(--aw-seam);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff);
+  pointer-events: none;
+}
+.aw-legal .aw-hero__mark {
+  position: absolute; z-index: -1; right: 0; bottom: 3%;
+  width: auto; height: 92%; max-width: none;
+  height: min(92%, 40rem, 44vw);
+  transform: translateX(22%);
+  filter: brightness(0) invert(1); opacity: 0.08;
+  pointer-events: none; user-select: none; -webkit-user-select: none;
+}
+@media (max-width: 43.6875rem) {
+  .aw-legal .aw-hero__mark { top: 8%; bottom: auto; height: 40%; transform: translateX(32%); }
+}
+.aw-legal .aw-hero__inner {
+  width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin: 0 auto;
+  padding: clamp(6rem, 11vw, 9rem) 0 calc(var(--aw-seam) + clamp(1.5rem, 4vw, 3rem));
+}
+.aw-legal .aw-hero__title {
+  color: #fff;
+  font-size: clamp(2rem, 0.5rem + 7vw, 5.5rem);
+  line-height: 1.03; letter-spacing: -0.035em; font-weight: 700;
+  overflow-wrap: break-word;
+}
+.aw-legal .aw-hero__title span { display: block; }
+.aw-legal .aw-hero__sub {
+  margin-top: 1.25rem; max-width: 40rem;
+  font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.3125rem);
+  line-height: 1.4; letter-spacing: -0.008em; color: rgba(255, 255, 255, 0.94);
+}
+.aw-legal .aw-hero__sub time { white-space: nowrap; }
+
+@keyframes aw-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes aw-fade { from { opacity: 0; } to { opacity: 1; } }
+.aw-legal .aw-hero__title span,
+.aw-legal .aw-hero__sub { animation: aw-rise 0.9s var(--aw-ease) both; }
+.aw-legal .aw-hero__sub { animation-delay: 0.14s; }
+
+/* =========================================================================
+   2. AS CLÁUSULAS · título à esquerda (colado ao topo em ecrãs largos),
+   texto à direita, uma linha fina entre cláusulas
+   ========================================================================= */
+.aw-legal .aw-policy { padding-bottom: clamp(4rem, 9vw, 8rem); background: var(--aw-white); }
+.aw-legal .aw-clause__grid {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem clamp(2rem, 5vw, 3.5rem);
+  padding: clamp(2.25rem, 5vw, 4rem) 0;
+}
+.aw-legal .aw-clause:first-child .aw-clause__grid { padding-top: clamp(1rem, 2vw, 2rem); }
+.aw-legal .aw-clause + .aw-clause .aw-clause__grid { border-top: 1px solid var(--aw-pale); }
+@media (min-width: 62rem) {
+  .aw-legal .aw-clause__grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(3rem, 6vw, 6rem); align-items: first baseline; }
+  .aw-legal .aw-clause__title { position: sticky; top: calc(var(--aw-header) + 2rem); }
+}
+.aw-legal .aw-clause__title {
+  font-size: clamp(1.5rem, 1rem + 1.4vw, 2.125rem);
+  line-height: 1.15; letter-spacing: -0.022em; font-weight: 650; color: var(--aw-ink);
+  overflow-wrap: break-word;
+}
+.aw-legal .aw-clause__text {
+  max-width: 38rem;
+  font-size: clamp(1.0625rem, 1rem + 0.2vw, 1.125rem);
+  line-height: 1.6; letter-spacing: -0.003em; color: var(--aw-body);
+}
+.aw-legal .aw-clause__text + .aw-clause__text { margin-top: 1.125em; }
+
+/* ligações no texto: sublinhadas, na cor do título */
+.aw-legal a.aw-link {
+  color: var(--aw-ink); overflow-wrap: anywhere;
+  text-decoration: underline; text-decoration-color: var(--aw-mid); text-decoration-thickness: 1px; text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-legal a.aw-link:hover, .aw-legal a.aw-link:focus {
+  text-decoration-color: currentColor; text-decoration-thickness: 2px;
+}
+.aw-legal a.aw-link:active { opacity: 0.7; }
+
+/* cláusulas numeradas (Terms): o número fica pendurado à esquerda do título */
+.aw-legal--numbered .aw-policy { counter-reset: aw-clause; }
+.aw-legal--numbered .aw-clause__title { padding-left: 2.15em; text-indent: -2.15em; }
+.aw-legal--numbered .aw-clause__title::before {
+  counter-increment: aw-clause; content: counter(aw-clause) ".";
+  display: inline-block; width: 1.7em; margin-right: 0.45em; text-indent: 0; white-space: nowrap;
+  font-weight: 500; color: var(--aw-muted); font-variant-numeric: tabular-nums;
+}
+
+/* listas dentro do texto */
+.aw-legal .aw-clause__text + .aw-list { margin-top: 0.75rem; }
+.aw-legal .aw-list { max-width: 38rem; }
+.aw-legal .aw-list__item {
+  position: relative; padding-left: 1.4rem;
+  font-size: clamp(1.0625rem, 1rem + 0.2vw, 1.125rem); line-height: 1.6; letter-spacing: -0.003em; color: var(--aw-body);
+}
+.aw-legal .aw-list__item + .aw-list__item { margin-top: 0.5rem; }
+.aw-legal .aw-list__item::before {
+  content: ""; position: absolute; left: 0.2rem; top: 0.72em; width: 0.3rem; height: 0.3rem; border-radius: 50%; background: var(--aw-mid);
+}
+.aw-legal .aw-list + .aw-clause__text { margin-top: 0.75rem; }
+
+/* =========================================================================
+   Preferências do utilizador
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .aw-legal .aw-hero__title span, .aw-legal .aw-hero__sub { animation-name: aw-fade; animation-duration: 0.4s; animation-delay: 0s; }
+  .aw-legal a.aw-link { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .aw-legal .aw-hero__mark { display: none; }
+}
+@media (prefers-contrast: more) {
+  .aw-legal .aw-hero__mark { display: none; }
+  .aw-legal { --aw-muted: #34496f; }
+  .aw-legal .aw-clause + .aw-clause .aw-clause__grid { border-color: var(--aw-mid); }
+}
+@media (forced-colors: active) {
+  .aw-legal .aw-hero::after, .aw-legal .aw-hero__mark { display: none; }
+  .aw-legal .aw-clause + .aw-clause .aw-clause__grid { border-color: CanvasText; }
+}
+
+/* impressão: sem azul, sem marca, sem header/footer; as cláusulas não se partem a meio */
+@media print {
+  .site-header, .site-footer, .site-skip { display: none !important; }
+  .aw-legal .aw-hero { min-height: 0; background: none; color: var(--aw-ink); }
+  .aw-legal .aw-hero::after, .aw-legal .aw-hero__mark { display: none; }
+  .aw-legal .aw-hero__inner { padding: 0 0 1.5rem; }
+  .aw-legal .aw-hero__title, .aw-legal .aw-hero__sub { color: var(--aw-ink); animation: none; }
+  .aw-legal .aw-hero__title span { animation: none; }
+  .aw-legal .aw-clause__grid { grid-template-columns: minmax(0, 1fr); padding: 1.25rem 0; break-inside: avoid; }
+  .aw-legal .aw-clause__title { position: static; }
+}
