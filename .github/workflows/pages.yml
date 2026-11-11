@@ -23,6 +23,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: python build.py
+        env:
+          # Set under Settings > Secrets and variables > Actions > Variables.
+          # Without them the site is built from the JSON files in data/.
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

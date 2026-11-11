@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" data-root="{{root}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — Atlean World</title>
+<link rel="icon" href="{{root}}favicon.ico" sizes="any">
+<link rel="icon" href="{{root}}media/brand/favicon-32.png" type="image/png">
+<link rel="stylesheet" href="{{root}}assets/vendor/quill/quill.snow.css">
+<link rel="stylesheet" href="{{root}}assets/css/admin.css">
+<script src="{{root}}assets/vendor/supabase/supabase.js" defer></script>
+<script src="{{root}}assets/vendor/quill/quill.js" defer></script>
+<script src="{{root}}assets/js/admin-config.js" defer></script>
+<script src="{{root}}assets/js/admin.js" defer></script>
+</head>
+<body class="adm">
+
+<!-- The admin panel. Everything below is filled in by assets/js/admin.js. -->
+
+<!-- Sign in / set password -->
+<main class="adm-auth" id="adm-auth" hidden>
+  <div class="adm-auth__card">
+    <img class="adm-auth__logo" src="{{root}}media/brand/Atlean-world-logo.png" alt="Atlean World" width="244" height="22">
+    <h1 class="adm-auth__title" id="adm-auth-title">Sign in</h1>
+    <p class="adm-auth__sub" id="adm-auth-sub">Manage jobs, Atlean Talks and media.</p>
+
+    <form class="adm-form" id="adm-login" novalidate>
+      <label class="adm-field"><span>Email</span><input type="email" name="email" autocomplete="username" required></label>
+      <label class="adm-field"><span>Password</span><input type="password" name="password" autocomplete="current-password" required></label>
+      <button class="adm-btn adm-btn--wide" type="submit">Sign in</button>
+      <button class="adm-linkbtn" type="button" id="adm-forgot">Forgot your password?</button>
+    </form>
+
+    <form class="adm-form" id="adm-setpw" novalidate hidden>
+      <label class="adm-field"><span>New password</span><input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+      <label class="adm-field"><span>Repeat it</span><input type="password" name="password2" autocomplete="new-password" minlength="8" required></label>
+      <button class="adm-btn adm-btn--wide" type="submit">Save password</button>
+    </form>
+
+    <p class="adm-msg" id="adm-auth-msg" role="alert" hidden></p>
+  </div>
+</main>
+
+<!-- The panel -->
+<div class="adm-app" id="adm-app" hidden>
+  <header class="adm-bar">
+    <a class="adm-bar__logo" href="#jobs"><img src="{{root}}media/brand/favicon.png" alt="" width="28" height="28"><span>Admin</span></a>
+    <nav class="adm-tabs" aria-label="Sections">
+      <a href="#jobs" data-tab="jobs">Jobs</a>
+      <a href="#talks" data-tab="talks">Atlean Talks</a>
+      <a href="#media" data-tab="media">Media</a>
+      <a href="#users" data-tab="users" data-admin-only hidden>Users</a>
+    </nav>
+    <div class="adm-bar__end">
+      <a class="adm-bar__site" href="{{root}}" target="_blank" rel="noopener">View site</a>
+      <button class="adm-bar__me" type="button" id="adm-signout" title="Sign out"><span id="adm-me"></span> · Sign out</button>
+    </div>
+  </header>
+  <main class="adm-main" id="adm-view" tabindex="-1"></main>
+</div>
+
+<div class="adm-toast" id="adm-toast" role="status" aria-live="polite" hidden></div>
+
+<dialog class="adm-dialog" id="adm-dialog">
+  <form method="dialog">
+    <h2 class="adm-dialog__title" id="adm-dialog-title"></h2>
+    <p class="adm-dialog__text" id="adm-dialog-text"></p>
+    <div class="adm-dialog__btns">
+      <button class="adm-btn adm-btn--ghost" value="cancel">Cancel</button>
+      <button class="adm-btn adm-btn--danger" value="ok" id="adm-dialog-ok">Delete</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="adm-dialog adm-dialog--wide" id="adm-picker">
+  <div class="adm-picker__head">
+    <h2 class="adm-dialog__title">Choose an image</h2>
+    <button class="adm-btn adm-btn--ghost" type="button" data-close>Close</button>
+  </div>
+  <div id="adm-picker-body"></div>
+</dialog>
+
+</body>
+</html>

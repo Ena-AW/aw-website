@@ -56,7 +56,8 @@ def supabase_get(table, query):
     security only lets the anon key see published rows."""
     url = os.environ["SUPABASE_URL"].rstrip("/") + f"/rest/v1/{table}?{query}"
     key = os.environ["SUPABASE_ANON_KEY"]
-    req = urllib.request.Request(url, headers={"apikey": key, "Authorization": f"Bearer {key}"})
+    schema = os.environ.get("SUPABASE_SCHEMA", "website")
+    req = urllib.request.Request(url, headers={"apikey": key, "Authorization": f"Bearer {key}", "Accept-Profile": schema})
     with urllib.request.urlopen(req, timeout=30) as res:
         return json.load(res)
 
@@ -84,6 +85,38 @@ def load_posts():
         p["date_human"] = f"{d.day} {d.strftime('%B %Y')}"
     posts.sort(key=lambda p: p["date"], reverse=True)
     return posts
+
+
+LANG_CODES = {
+    "german": ("Deutsch", "de"), "dutch": ("Nederlands", "nl"), "french": ("Français", "fr"),
+    "italian": ("Italiano", "it"), "spanish": ("Español", "es"), "portuguese": ("Português", "pt"),
+    "english": ("English", "en"), "greek": ("Ελληνικά", "el"), "polish": ("Polski", "pl"),
+    "swedish": ("Svenska", "sv"), "danish": ("Dansk", "da"), "norwegian": ("Norsk", "no"),
+    "finnish": ("Suomi", "fi"), "czech": ("Čeština", "cs"), "turkish": ("Türkçe", "tr"),
+}
+
+
+def write_job_data():
+    """With Supabase configured, the jobs list and the home page's spotlight
+    jobs come from the admin panel instead of the JSON files in data/."""
+    if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_ANON_KEY")):
+        return
+    rows = supabase_get("jobs", "select=*&status=eq.published&order=updated_at.desc")
+    jobs = [{
+        "slug": r["slug"], "title": r["title"], "location": r["location"], "locationSlug": r["location_slug"],
+        "country": r["country"], "position": r["position"], "language": r["language"],
+        "employmentType": r["employment_type"], "workModel": r["work_model"],
+    } for r in rows]
+    spotlight = []
+    for r in rows:
+        if not r.get("spotlight"):
+            continue
+        native, code = LANG_CODES.get(r["language"].strip().lower(), (r["language"], ""))
+        spotlight.append({"language": native, "languageCode": code, "title": r["title"],
+                          "location": r["location"] or r["country"], "url": f"jobs/{r['slug']}/"})
+    (OUT / "data" / "jobs.json").write_text(json.dumps(jobs, ensure_ascii=False, indent=1), encoding="utf-8")
+    (OUT / "data" / "spotlight-jobs.json").write_text(json.dumps(spotlight, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"Loaded {len(jobs)} job(s) from Supabase, {len(spotlight)} in the spotlight")
 
 
 def category_slug(name):
@@ -190,6 +223,11 @@ def build():
     if (ROOT / "static").is_dir():
         shutil.copytree(ROOT / "static", OUT, dirs_exist_ok=True)
     (OUT / ".nojekyll").touch()   # GitHub Pages: serve files as they are
+
+    write_job_data()
+    # the three newest articles, for the Atlean Talks section of the home page
+    latest = [{"title": p["title"], "url": f"{p['slug']}/", "date": p["date"], "cover": p["cover"]} for p in posts[:3]]
+    (OUT / "data" / "talks-latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"Built {len(sources)} page(s), {len(posts)} of them blog posts, into {OUT.relative_to(ROOT)}/")
 
