@@ -1,0 +1,78 @@
+<!-- nav: talks -->
+<!DOCTYPE html>
+<html lang="en" data-root="{{root}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{post.title}} — Atlean Talks</title>
+<meta name="description" content="{{post.description}}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{post.title}}">
+<meta property="og:description" content="{{post.description}}">
+<meta property="article:published_time" content="{{post.date}}">
+<link rel="icon" href="{{root}}favicon.ico" sizes="any">
+<link rel="icon" href="{{root}}media/brand/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="{{root}}media/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="{{root}}assets/css/site.css">
+<link rel="stylesheet" href="{{root}}assets/css/talks.css">
+<script src="{{root}}assets/js/site.js" defer></script>
+</head>
+<body>
+
+<!-- include:header -->
+
+<!-- One Atlean Talks article. build.py fills the {{post.*}} fields for every published post. -->
+<main class="aw-talks aw-post" id="content">
+
+  <article>
+    <header class="aw-thero aw-thero--post">
+      <img class="aw-thero__mark" src="{{root}}media/brand/favicon.png" alt="" aria-hidden="true">
+      <div class="aw-thero__inner">
+        <a class="aw-post__back" href="{{root}}atleantalks/">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          Atlean Talks
+        </a>
+        {{post.category_html}}
+        <h1 class="aw-thero__title">{{post.title}}</h1>
+        <p class="aw-post__meta">
+          <time datetime="{{post.date}}">{{post.date_human}}</time>
+          <span>{{post.minutes}} min read</span>
+          {{post.author_html}}
+        </p>
+      </div>
+    </header>
+
+    <div class="aw-twrap aw-post__wrap">
+      {{post.cover_html}}
+      <div class="aw-prose">
+{{post.body}}
+      </div>
+    </div>
+  </article>
+
+  <!-- CTA, as on the current site -->
+  <section class="aw-tcta" aria-labelledby="aw-tcta-title">
+    <div class="aw-twrap aw-tcta__inner">
+      <h2 class="aw-tcta__title" id="aw-tcta-title">Looking for a job or a partner to help your recruitment?</h2>
+      <div class="aw-tcta__btns">
+        <a class="aw-tbtn" href="{{root}}open-jobs/">See open jobs</a>
+        <a class="aw-tbtn aw-tbtn--ghost" href="{{root}}employer-solutions/#es-contact">Reach out to our team</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="aw-trelated" aria-labelledby="aw-trelated-title">
+    <div class="aw-twrap">
+      <h2 class="aw-trelated__title" id="aw-trelated-title">Keep reading</h2>
+      <ul class="aw-trows aw-trows--related">
+{{post.related}}
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- include:footer -->
+
+</body>
+</html>
