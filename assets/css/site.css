@@ -203,3 +203,12 @@ img { max-width: 100%; height: auto; }
 @media (prefers-reduced-transparency: reduce) {
   .site-nav { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
+
+/* =========================================================================
+   SMOOTH SCROLL · classes added by Lenis (assets/vendor/lenis)
+   ========================================================================= */
+html.lenis, html.lenis body { height: auto; }
+html.lenis.lenis-smooth { scroll-behavior: auto !important; }   /* Lenis animates; the browser must not animate on top */
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+.lenis.lenis-scrolling iframe { pointer-events: none; }   /* only mid-scroll, so the Turnstile check stays clickable */

@@ -66,6 +66,7 @@
     var panel = el('div', 'aw-dd__panel');
     panel.id = id;
     var listbox = el('ul', 'aw-dd__list');
+    listbox.setAttribute('data-lenis-prevent', '');   // the list scrolls on its own, not the page
     listbox.setAttribute('role', 'listbox');
     listbox.setAttribute('aria-multiselectable', 'true');
     listbox.setAttribute('aria-label', noun);
