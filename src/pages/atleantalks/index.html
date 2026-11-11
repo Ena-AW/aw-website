@@ -1,0 +1,71 @@
+<!-- nav: talks -->
+<!DOCTYPE html>
+<html lang="en" data-root="{{root}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlean Talks — Atlean World</title>
+<meta name="description" content="Career guides, tips, new technologies and career journeys from the Atlean World team.">
+<link rel="icon" href="{{root}}favicon.ico" sizes="any">
+<link rel="icon" href="{{root}}media/brand/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="{{root}}media/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="{{root}}assets/css/site.css">
+<link rel="stylesheet" href="{{root}}assets/css/talks.css">
+<script src="{{root}}assets/js/site.js" defer></script>
+<script src="{{root}}assets/js/talks.js" defer></script>
+</head>
+<body>
+
+<!-- include:header -->
+
+<main class="aw-talks" id="content">
+
+  <!-- ========================================================================
+       1. BANNER
+       ======================================================================== -->
+  <section class="aw-thero" aria-labelledby="aw-talks-title">
+    <img class="aw-thero__mark" src="{{root}}media/brand/favicon.png" alt="" aria-hidden="true">
+    <div class="aw-thero__inner">
+      <h1 class="aw-thero__title" id="aw-talks-title">Atlean Talks</h1>
+      <p class="aw-thero__sub">Career guides, tips, new technologies and career journeys.</p>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       2. SEARCH, CATEGORIES AND THE LIST
+       The posts are written in by build.py (<!-- talks:list -->), so they are
+       in the page for search engines; talks.js only filters and pages them.
+       ======================================================================== -->
+  <section class="aw-tlist" aria-label="Articles">
+    <div class="aw-twrap">
+      <form class="aw-tsearch" role="search" aria-label="Search articles" onsubmit="return false">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <label class="aw-vh" for="aw-tq">Search articles</label>
+        <input id="aw-tq" type="search" name="q" placeholder="Search articles" autocomplete="off" enterkeyhint="search">
+      </form>
+
+      <div class="aw-chips" id="aw-chips" role="group" aria-label="Categories">
+<!-- talks:categories -->
+      </div>
+
+      <p class="aw-tcount" id="aw-tcount" aria-live="polite"></p>
+
+      <ul class="aw-trows" id="aw-trows">
+<!-- talks:list -->
+      </ul>
+
+      <div class="aw-tempty" id="aw-tempty" hidden>
+        <p>No articles match your search.</p>
+        <p>Try another word or category.</p>
+      </div>
+
+      <nav class="aw-pager" id="aw-pager" aria-label="Pages" hidden></nav>
+    </div>
+  </section>
+
+</main>
+
+<!-- include:footer -->
+
+</body>
+</html>
