@@ -28,6 +28,24 @@ Preview locally: `python build.py --serve`, then open http://localhost:8000.
 
 Every push to `main` builds the site and publishes it to GitHub Pages (`.github/workflows/pages.yml`).
 
+## SEO (`seo.py`)
+
+`build.py` runs every page through `seo.py`, which adds before `</head>`:
+
+- a canonical link and Open Graph / X tags (title and description come from the page's own `<title>` and `<meta name="description">`; the share image is the article cover or `media/brand/og-default.jpg`),
+- structured data: Organization + WebSite on the home page, BlogPosting on every article, breadcrumbs everywhere else, and `seo.job_posting()` for the job pages (Google for Jobs).
+
+It also writes `sitemap.xml` and `robots.txt` (which keeps `/admin/` out). A page with `<meta name="robots" content="noindex">` in its head is skipped and left out of the sitemap.
+
+Two repository variables (Settings → Secrets and variables → Actions → Variables):
+
+| Variable | What it does |
+| --- | --- |
+| `SITE_URL` | The live address for canonical links and the sitemap. Default `https://atleanworld.com`. |
+| `SITE_INDEXING` | Set to `on` at go-live. Until then every page says `noindex`, so the preview never competes with the live site in Google. |
+
+At go-live: set `SITE_INDEXING=on`, then submit `https://atleanworld.com/sitemap.xml` in Google Search Console.
+
 ## Admin panel (`/admin/`)
 
 Sign in with Google, using an Atlean account. Tabs: **Jobs**, **Atlean Talks**, **Home page** (the 3–5 spotlight jobs, in order), **Social media** (planner for Instagram, Facebook and LinkedIn: calendar, list, composer with previews), **Media** and **Users** (admins only).

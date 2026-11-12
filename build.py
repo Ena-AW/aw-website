@@ -33,6 +33,8 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
+import seo
+
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 OUT = ROOT / "_site"
@@ -70,6 +72,7 @@ def load_posts():
             "category": r.get("category") or "", "author": r.get("author") or "",
             "excerpt": r.get("excerpt") or "", "cover": r.get("cover_url") or "",
             "body": r.get("body") or "", "showAuthorPhoto": r.get("show_author_photo", True),
+            "updated": (r.get("updated_at") or "")[:10],
         } for r in rows]
         print(f"Loaded {len(posts)} post(s) from Supabase")
     else:
@@ -171,10 +174,33 @@ def related_posts(post, posts, n=3):
     return (same + rest)[:n]
 
 
+IMG_TAG_RE = re.compile(r"<img\b(?![^>]*\bloading=)", re.I)
+
+
+def lazy_images(body):
+    """Images inside an article load only when the reader scrolls near them."""
+    return IMG_TAG_RE.sub('<img loading="lazy" decoding="async"', body)
+
+
+def plain_excerpt(body, limit=155):
+    """For a post without an excerpt: the start of its text, for the meta description."""
+    text = " ".join(htmlmod.unescape(re.sub(r"<[^>]+>", " ", body or "")).split())
+    return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + "…"
+
+
+def post_seo(post):
+    return {
+        "type": "article", "headline": post["title"], "image": post["cover"],
+        "published": post["date"], "modified": post.get("updated") or None,
+        "author": post["author"], "section": post["category"],
+        "breadcrumbs": [("Home", ""), ("Atlean Talks", "atleantalks/"), (post["title"], post["slug"] + "/")],
+    }
+
+
 def render_post(template, post, posts):
     values = {k: esc(v) for k, v in post.items() if k != "body"}
-    values["body"] = post["body"]
-    values["description"] = esc(post["excerpt"])
+    values["body"] = lazy_images(post["body"])
+    values["description"] = esc(post["excerpt"] or plain_excerpt(post["body"]))
     values["cover_html"] = (
         f'<figure class="aw-post__cover"><img src="{esc(post["cover"])}" alt="" width="1076" height="605"></figure>'
         if post["cover"] else ""
@@ -209,13 +235,14 @@ def build():
     page_dirs = {p.parent.relative_to(SRC / "pages").as_posix() for p in (SRC / "pages").rglob("index.html")}
     template = (SRC / "templates" / "post.html").read_text(encoding="utf-8")
 
-    sources = [(p.relative_to(SRC / "pages"), p.read_text(encoding="utf-8")) for p in sorted((SRC / "pages").rglob("*.html"))]
+    sources = [(p.relative_to(SRC / "pages"), p.read_text(encoding="utf-8"), None) for p in sorted((SRC / "pages").rglob("*.html"))]
     for post in posts:
         if post["slug"] in page_dirs or post["slug"] in STATIC_DIRS:
             sys.exit(f"post slug '{post['slug']}' clashes with a page or folder of the site")
-        sources.append((Path(post["slug"]) / "index.html", render_post(template, post, posts)))
+        sources.append((Path(post["slug"]) / "index.html", render_post(template, post, posts), post_seo(post)))
 
-    for rel, html in sources:
+    sitemap = []
+    for rel, html, meta in sources:
         depth = len(rel.parts) - 1
         root = "../" * depth or "./"
         nav = None
@@ -234,6 +261,11 @@ def build():
         html = TALKS_RE.sub(lambda m: render_talks(m.group(1), posts), html)
         if nav:
             html = html.replace(f'data-nav="{nav}"', f'data-nav="{nav}" aria-current="page"')
+        # canonical URL, social sharing tags and structured data (seo.py)
+        path = "" if rel.parent == Path(".") else rel.parent.as_posix() + "/"
+        if not seo.is_noindex(html):
+            html = seo.add_head_tags(html, path, meta)
+            sitemap.append((path, (meta or {}).get("modified") or (meta or {}).get("published")))
         html = html.replace("{{root}}", root)
 
         dest = OUT / rel
@@ -247,6 +279,8 @@ def build():
     if (ROOT / "static").is_dir():
         shutil.copytree(ROOT / "static", OUT, dirs_exist_ok=True)
     (OUT / ".nojekyll").touch()   # GitHub Pages: serve files as they are
+    (OUT / "sitemap.xml").write_text(seo.sitemap_xml(sitemap), encoding="utf-8")
+    (OUT / "robots.txt").write_text(seo.robots_txt(), encoding="utf-8")
 
     write_job_data()
     # the three newest articles, for the Atlean Talks section of the home page
