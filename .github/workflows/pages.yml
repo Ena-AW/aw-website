@@ -28,6 +28,11 @@ jobs:
           # Without them the site is built from the JSON files in data/.
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          # The live address for canonical links and the sitemap (default https://atleanworld.com),
+          # and SITE_INDEXING = on to let Google index the site. Leave it unset until go-live,
+          # so the preview is never indexed.
+          SITE_URL: ${{ vars.SITE_URL }}
+          SITE_INDEXING: ${{ vars.SITE_INDEXING }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
