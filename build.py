@@ -192,7 +192,7 @@ def render_apply(job):
             <label class="aw-alabel" for="aw-a-phone">Phone</label>
             <div class="aw-aphone">
               <select class="aw-ainput aw-aphone__code" name="phone_code" aria-label="Country code" autocomplete="tel-country-code">{codes}</select>
-              <input class="aw-ainput" id="aw-a-phone" name="phone_number" type="tel" required inputmode="tel" maxlength="20" autocomplete="tel-national" placeholder="912 345 678" aria-describedby="aw-a-phone-err">
+              <input class="aw-ainput" id="aw-a-phone" name="phone_number" type="tel" required inputmode="numeric" pattern="[0-9 ]*" maxlength="20" autocomplete="tel-national" placeholder="912 345 678" aria-describedby="aw-a-phone-err">
             </div>
             <p class="aw-aerr" id="aw-a-phone-err" data-for="phone"></p>
           </div>
