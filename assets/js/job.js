@@ -3,6 +3,46 @@
 // Atleable. Errors come back per field and are shown next to that field.
 (function () {
   'use strict';
+  // ==========================================================================
+  // Section bar: shows which chapter you are reading (aria-current on its link)
+  // ==========================================================================
+  var root = document.querySelector('.aw-jd');
+  var bar = root && root.querySelector('.aw-bar');
+  var links = bar ? [].slice.call(bar.querySelectorAll('.aw-bar__link')) : [];
+  var sections = links.map(function (a) { return root.querySelector(a.getAttribute('href')); });
+  var tails = root ? [root.querySelector('#apply'), root.querySelector('#close')].filter(Boolean) : [];
+  var spyQueued = false, current = -1;
+  function spy() {
+    spyQueued = false;
+    var stuck = (parseFloat(getComputedStyle(bar).top) || 0) + bar.offsetHeight + 32;
+    var idx = -1;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i] && sections[i].getBoundingClientRect().top <= stuck) idx = i;
+    }
+    for (var t = 0; t < tails.length; t++) {
+      if (tails[t].getBoundingClientRect().top <= stuck) idx = -1;
+    }
+    if (idx === current) return;
+    if (current > -1) links[current].removeAttribute('aria-current');
+    if (idx > -1) links[idx].setAttribute('aria-current', 'true');
+    current = idx;
+  }
+  function queueSpy() { if (!spyQueued) { spyQueued = true; requestAnimationFrame(spy); } }
+  if (bar && links.length) {
+    window.addEventListener('scroll', queueSpy, { passive: true });
+    window.addEventListener('resize', queueSpy);
+    spy();
+  }
+  // a photo that can't be loaded: its frame disappears (no broken-image icon)
+  [].forEach.call(document.querySelectorAll('.aw-photo__img'), function (img) {
+    function missing() { var f = img.closest('.aw-photo'); if (f) f.classList.add('is-missing'); }
+    if (img.complete && img.naturalWidth === 0 && img.currentSrc) missing();
+    img.addEventListener('error', missing);
+  });
+
+  // ==========================================================================
+  // The apply form
+  // ==========================================================================
   var form = document.getElementById('aw-apply-form');
   if (!form) return;
 
@@ -113,7 +153,7 @@
           form.hidden = true;
           var thanks = document.getElementById('aw-apply-thanks');
           thanks.hidden = false;
-          thanks.focus();
+          (thanks.querySelector('.aw-done__title') || thanks).focus();
           return;
         }
         var msg = (r.body && r.body.error) || 'Something went wrong. Please try again.';

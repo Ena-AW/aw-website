@@ -85,7 +85,7 @@ Setup, once:
 
 ## Job pages and the apply form
 
-Every published job gets a page at `/jobs/<slug>/`, built from `src/templates/job.html` (styles in `assets/css/job.css`, the form in `assets/js/job.js`). The description comes from Atleable; empty spacer lines and "::::::" dividers are tidied up.
+Every published job gets a page at `/jobs/<slug>/`, built from `src/templates/job.html` in the layout of the job description reference (opening with the title, a photo of the country from `media/destinations/` and the key facts; a sticky section bar; one chapter per part of the description; the apply form; the blue closing). Styles in `assets/css/job.css`, script in `assets/js/job.js`. `build.py` splits the Atleable description into chapters at its dividers ("::::::") and headings (an `<h3>` or a short bold line such as "Requirements" or "What we offer:"), and drops empty spacer lines.
 
 The apply form never goes to Workable. It posts the CV and details to the `website-apply` Edge Function, which checks them (and the Cloudflare Turnstile anti-bot check) and forwards them to Atleable, server to server:
 
