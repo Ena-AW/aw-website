@@ -59,3 +59,46 @@ Article authors get their photo from `media/team/web/<first-last>.webp` when the
 - Saving anything calls the `website-rebuild` Edge Function (`supabase/functions/`), which starts the GitHub Pages workflow. The site updates in about a minute.
 - `build.py` reads jobs and articles from Supabase when the repository variables `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set (Settings → Secrets and variables → Actions → Variables); otherwise it uses the JSON files in `data/`.
 - `assets/vendor/supabase` (supabase-js 2.45.4, MIT) and `assets/vendor/quill` (Quill 2.0.2, BSD-3) are kept in the repo, so the panel doesn't depend on a CDN.
+
+## Jobs from Atleable
+
+Atleable's jobs are in the same Supabase database (`public.jobs`), so the website reads them directly. No API between the two is needed, and nothing in Atleable's tables changes.
+
+- `website.sync_atleable_jobs()` (`supabase/migrations/20261116150000_atleable_jobs_sync.sql`) copies jobs published in Atleable into `website.jobs`. Edits to the title, description, location, employment type and work model follow; when a job is archived, unpublished or deleted in Atleable it is closed on the website.
+- Which jobs go on the site is set in `website.atleable_rule()`: `mkt` (the current setting: only published jobs of the MKT client), `all` (every published job) or `manual` (copied in as drafts).
+- Applications never go to Workable: the job page's apply form sends the CV to the job's pipeline in Atleable (`website.jobs.atleable_id` is Atleable's job id).
+- Position, language, salary, web address and spotlight are set in the admin panel and never overwritten. Setting a job to Closed in the admin hides it until its state changes in Atleable.
+- The `atleable-sync` Edge Function runs the sync and rebuilds the site when something changed. It is called every 15 minutes by `.github/workflows/atleable-sync.yml`, by the **Sync from Atleable** button in the admin's Jobs tab, and, if you want jobs to appear right away, by Atleable after it saves a job:
+
+  ```
+  POST https://<project>.supabase.co/functions/v1/atleable-sync
+  x-sync-key: <ATLEABLE_SYNC_KEY>
+  ```
+
+  It replies `{"added": 1, "updated": 0, "closed": 0, "rebuilt": true}`.
+
+Setup, once:
+
+1. Apply the migration and deploy the function with `supabase functions deploy atleable-sync --no-verify-jwt`.
+2. Supabase → Edge Functions → Secrets: add `ATLEABLE_SYNC_KEY` (a long random string). `GITHUB_TOKEN` and `GITHUB_REPO` are already there for `website-rebuild`.
+3. GitHub → Settings → Secrets and variables → Actions: add the secret `ATLEABLE_SYNC_KEY` with the same value. The repository variable `SUPABASE_URL` must be set.
+
+## Job pages and the apply form
+
+Every published job gets a page at `/jobs/<slug>/`, built from `src/templates/job.html` (styles in `assets/css/job.css`, the form in `assets/js/job.js`). The description comes from Atleable; empty spacer lines and "::::::" dividers are tidied up.
+
+The apply form never goes to Workable. It posts the CV and details to the `website-apply` Edge Function, which checks them (and the Cloudflare Turnstile anti-bot check) and forwards them to Atleable, server to server:
+
+```
+POST https://aw-ats-458449481561.europe-west1.run.app/api/website/applications
+X-Website-Key: <ATLEABLE_WEBSITE_KEY>
+```
+
+Atleable puts the application in the job's Applied stage. Jobs added by hand in the admin (not from Atleable) show their apply link instead.
+
+Setup, once:
+
+1. Deploy the function: `supabase functions deploy website-apply --no-verify-jwt`.
+2. Supabase → Edge Functions → Secrets: add `ATLEABLE_WEBSITE_KEY` (the key Atleable gave) and `TURNSTILE_SECRET` (the Turnstile secret key for site key `0x4AAAAAAEj9k0XBclhf6p7N`).
+3. Cloudflare Turnstile: the site's hostnames must include `atleanworld.com` and `ena-aw.github.io` (preview).
+

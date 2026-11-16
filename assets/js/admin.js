@@ -292,7 +292,7 @@
   function listView(view, opts) {
     var state = { q: '', status: '' };
     view.innerHTML =
-      '<div class="adm-head"><h1>' + opts.title + '</h1><a class="adm-btn" href="#' + opts.tab + '/new">' + opts.newLabel + '</a></div>' +
+      '<div class="adm-head"><h1>' + opts.title + '</h1>' + (opts.extra || '') + '<a class="adm-btn" href="#' + opts.tab + '/new">' + opts.newLabel + '</a></div>' +
       '<div class="adm-tools">' +
         '<input class="adm-search" type="search" placeholder="Search" aria-label="Search">' +
         '<div class="adm-seg" role="group" aria-label="Status">' +
@@ -322,11 +322,15 @@
         draw();
       });
     });
-    opts.load().then(function (res) {
-      if (res.error) { list.innerHTML = '<li class="adm-empty">' + esc(friendly(res.error)) + '</li>'; return; }
-      rows = res.data || [];
-      draw();
-    });
+    function load() {
+      opts.load().then(function (res) {
+        if (res.error) { list.innerHTML = '<li class="adm-empty">' + esc(friendly(res.error)) + '</li>'; return; }
+        rows = res.data || [];
+        draw();
+      });
+    }
+    if (opts.wire) opts.wire(view, load);
+    load();
   }
 
   function pill(status) {
@@ -338,6 +342,20 @@
   function jobsList(view) {
     listView(view, {
       tab: 'jobs', title: 'Jobs', newLabel: 'New job', empty: 'No jobs yet. Click “New job” to add the first one.',
+      extra: '<button class="adm-btn adm-btn--ghost" type="button" data-sync title="Jobs published in Atleable also arrive on their own every 15 minutes">Sync from Atleable</button>',
+      wire: function (view, reload) {
+        var btn = $('[data-sync]', view);
+        btn.addEventListener('click', function () {
+          busy(btn, true);
+          sb.functions.invoke('atleable-sync', { body: { rebuild: 'auto' } }).then(function (res) {
+            busy(btn, false);
+            if (res.error) { console.warn('atleable-sync', res.error); return toast('Could not sync with Atleable. Try again in a minute, or ask an admin to check the sync setup.', 'error'); }
+            var d = res.data || {}, n = (d.added || 0) + (d.updated || 0) + (d.closed || 0);
+            toast(n ? (d.added || 0) + ' new, ' + (d.updated || 0) + ' updated, ' + (d.closed || 0) + ' closed.' + (d.rebuilt ? ' The website is updating.' : '') : 'Already up to date with Atleable.');
+            if (n) reload();
+          });
+        });
+      },
       statuses: [['', 'All'], ['published', 'Published'], ['draft', 'Drafts'], ['closed', 'Closed']],
       load: function () { return sb.from('jobs').select('id,title,location,language,position,status,spotlight,source,updated_at').order('updated_at', { ascending: false }); },
       text: function (j) { return [j.title, j.location, j.language, j.position].join(' '); },
@@ -359,21 +377,25 @@
       if (r[0].error) { view.innerHTML = '<p class="adm-empty">' + esc(friendly(r[0].error)) + '</p>'; return; }
       var j = r[0].data, all = r[1].data || [];
       var slugTouched = !isNew;
+      // Title, description, location, type and work model of an Atleable job are
+      // edited in Atleable; the sync would overwrite changes made here.
+      var fromAtleable = j.source === 'atleable';
+      var lock = fromAtleable ? ' disabled title="Edit this in Atleable"' : '';
       view.innerHTML =
         '<form class="adm-edit" novalidate>' +
         '<div class="adm-head"><a class="adm-back" href="#jobs">‹ Jobs</a><h1>' + (isNew ? 'New job' : esc(j.title)) + '</h1></div>' +
-        (j.source === 'atleable' ? '<p class="adm-note">This job came from Atleable. Changes you make here are sent back to Atleable once the sync is switched on.</p>' : '') +
+        (fromAtleable ? '<p class="adm-note">This job comes from Atleable' + (j.atleable_state && j.atleable_state !== 'published' ? ' (now ' + esc(j.atleable_state) + ' there)' : '') + '. Edit its title, description, location, type and work model in Atleable; they update here within 15 minutes. Applications go straight to its pipeline in Atleable. Position, language, salary, web address and status are set here.</p>' : '') +
         '<div class="adm-grid">' +
-          '<label class="adm-field adm-span2"><span>Job title *</span><input name="title" required value="' + esc(j.title) + '"></label>' +
+          '<label class="adm-field adm-span2"><span>Job title *</span><input name="title" required value="' + esc(j.title) + '"' + lock + '></label>' +
           slugField('jobs/', j.slug) +
-          '<label class="adm-field"><span>Country</span><select name="country">' + options(COUNTRIES.indexOf(j.country) < 0 && j.country ? COUNTRIES.concat(j.country) : COUNTRIES, j.country) + '</select></label>' +
-          '<label class="adm-field"><span>Location</span><input name="location" list="dl-loc" placeholder="Lisbon, Portugal" value="' + esc(j.location) + '"></label>' +
+          '<label class="adm-field"><span>Country</span><select name="country"' + lock + '>' + options(COUNTRIES.indexOf(j.country) < 0 && j.country ? COUNTRIES.concat(j.country) : COUNTRIES, j.country) + '</select></label>' +
+          '<label class="adm-field"><span>Location</span><input name="location" list="dl-loc" placeholder="Lisbon, Portugal" value="' + esc(j.location) + '"' + lock + '></label>' +
           '<label class="adm-field"><span>Position</span><input name="position" list="dl-pos" placeholder="Customer Support" value="' + esc(j.position) + '"></label>' +
           '<label class="adm-field"><span>Language</span><input name="language" list="dl-lang" placeholder="German" value="' + esc(j.language) + '"></label>' +
-          '<label class="adm-field"><span>Employment type</span><select name="employment_type">' + options(EMPLOYMENT, j.employment_type) + '</select></label>' +
-          '<label class="adm-field"><span>Work model</span><select name="work_model">' + options(MODELS, j.work_model) + '</select></label>' +
+          '<label class="adm-field"><span>Employment type</span><select name="employment_type"' + lock + '>' + options(EMPLOYMENT, j.employment_type) + '</select></label>' +
+          '<label class="adm-field"><span>Work model</span><select name="work_model"' + lock + '>' + options(MODELS, j.work_model) + '</select></label>' +
           '<label class="adm-field"><span>Salary (optional)</span><input name="salary" placeholder="€1,200 + bonus" value="' + esc(j.salary) + '"></label>' +
-          '<label class="adm-field"><span>Apply link (optional)</span><input name="apply_url" type="url" placeholder="https://apply.workable.com/…" value="' + esc(j.apply_url) + '"></label>' +
+          (fromAtleable ? '<input type="hidden" name="apply_url" value="' + esc(j.apply_url) + '">' : '<label class="adm-field"><span>Apply link (optional)</span><input name="apply_url" type="url" placeholder="https://…" value="' + esc(j.apply_url) + '"></label>') +
           '<div class="adm-field adm-span2"><span>Job description</span><div class="adm-quill" id="adm-desc"></div></div>' +
         '</div>' +
         '<div class="adm-side">' +
@@ -381,7 +403,7 @@
           '<p class="adm-small">' + (j.spotlight ? '★ In the home page spotlight. ' : '') + '<a href="#home">Choose the home page spotlight jobs</a></p>' +
           '<div class="adm-actions">' +
             '<button class="adm-btn" type="submit">Save</button>' +
-            (isNew ? '' : '<button class="adm-btn adm-btn--danger adm-btn--ghost" type="button" data-delete>Delete</button>') +
+            (isNew || fromAtleable ? '' : '<button class="adm-btn adm-btn--danger adm-btn--ghost" type="button" data-delete>Delete</button>') +
           '</div>' +
           (isNew ? '' : '<p class="adm-small">Last saved ' + fmtDate(j.updated_at) + '</p>') +
         '</div>' +
@@ -393,6 +415,7 @@
       var form = $('form', view);
       var q = editor($('#adm-desc', view), 'What the job is, what you offer, who you are looking for…');
       if (j.description) q.clipboard.dangerouslyPasteHTML(j.description, 'silent');
+      if (fromAtleable) q.enable(false);
       dirty = false;
       var syncSlug = wireSlug(form);
       form.addEventListener('input', function (e) {
@@ -416,6 +439,7 @@
           salary: form.salary.value.trim(), apply_url: form.apply_url.value.trim(),
           description: editorHtml(q), status: form.status.value
         };
+        if (fromAtleable) ['title', 'country', 'location', 'location_slug', 'employment_type', 'work_model', 'description'].forEach(function (k) { delete row[k]; });
         var btn = $('button[type=submit]', form);
         busy(btn, true);
         var req = isNew ? sb.from('jobs').insert(row).select('id').single() : sb.from('jobs').update(row).eq('id', id).select('id').single();
