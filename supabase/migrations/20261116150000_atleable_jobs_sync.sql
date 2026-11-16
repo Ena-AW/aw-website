@@ -8,7 +8,7 @@
 --   * a job published in Atleable appears on the website (see atleable_rule()),
 --   * edits to its title, description, location, work model and type follow,
 --   * when it is archived, unpublished or deleted in Atleable it is closed here.
--- Website-only fields (slug, position, salary, apply link, spotlight) are never
+-- Website-only fields (slug, position, salary, spotlight) are never
 -- overwritten. A status chosen in the admin panel (e.g. Closed to hide a job)
 -- stays until the job's state changes in Atleable.
 --
@@ -74,7 +74,7 @@ begin
            j.description, j.updated_at, coalesce(c.is_marketing, false) as is_marketing,
            e.employment_type,
            w.id as wid, w.status as wstatus, w.atleable_state, w.atleable_updated_at,
-           w.language as wlanguage, w.apply_url as wapply
+           w.language as wlanguage
     from public.jobs j
     left join public.clients c on c.id = j.client_id
     left join public.job_extras e on e.job_id = j.id
@@ -93,7 +93,7 @@ begin
       end if;
       insert into website.jobs (
         slug, title, description, location, location_slug, country, language, position,
-        employment_type, work_model, apply_url, status, source, atleable_id, atleable_state, atleable_updated_at)
+        employment_type, work_model, status, source, atleable_id, atleable_state, atleable_updated_at)
       values (
         s, r.title, coalesce(r.description, ''), loc,
         website.slugify(split_part(loc, ',', 1) || case when ctry <> '' then '-' || ctry else '' end),
@@ -108,7 +108,6 @@ begin
              else 'Full-time' end,
         case lower(replace(coalesce(r.work_model, ''), '-', '_'))
              when 'remote' then 'Remote' when 'hybrid' then 'Hybrid' else 'On-site' end,
-        'https://apply.workable.com/j/' || r.shortcode,
         case when rule = 'manual' then 'draft' else 'published' end,
         'atleable', r.id::text, r.state, r.updated_at);
       added := added + 1;
@@ -139,7 +138,6 @@ begin
                                else 'Full-time' end,
         work_model      = case lower(replace(coalesce(r.work_model, ''), '-', '_'))
                                when 'remote' then 'Remote' when 'hybrid' then 'Hybrid' else 'On-site' end,
-        apply_url       = case when r.wapply = '' then 'https://apply.workable.com/j/' || r.shortcode else r.wapply end,
         status          = new_status,
         atleable_state  = r.state,
         atleable_updated_at = r.updated_at

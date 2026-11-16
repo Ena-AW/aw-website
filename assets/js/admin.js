@@ -384,7 +384,7 @@
       view.innerHTML =
         '<form class="adm-edit" novalidate>' +
         '<div class="adm-head"><a class="adm-back" href="#jobs">‹ Jobs</a><h1>' + (isNew ? 'New job' : esc(j.title)) + '</h1></div>' +
-        (fromAtleable ? '<p class="adm-note">This job comes from Atleable' + (j.atleable_state && j.atleable_state !== 'published' ? ' (now ' + esc(j.atleable_state) + ' there)' : '') + '. Edit its title, description, location, type and work model in Atleable; they update here within 15 minutes. Position, language, salary, apply link, web address and status are set here.</p>' : '') +
+        (fromAtleable ? '<p class="adm-note">This job comes from Atleable' + (j.atleable_state && j.atleable_state !== 'published' ? ' (now ' + esc(j.atleable_state) + ' there)' : '') + '. Edit its title, description, location, type and work model in Atleable; they update here within 15 minutes. Applications go straight to its pipeline in Atleable. Position, language, salary, web address and status are set here.</p>' : '') +
         '<div class="adm-grid">' +
           '<label class="adm-field adm-span2"><span>Job title *</span><input name="title" required value="' + esc(j.title) + '"' + lock + '></label>' +
           slugField('jobs/', j.slug) +
@@ -395,7 +395,7 @@
           '<label class="adm-field"><span>Employment type</span><select name="employment_type"' + lock + '>' + options(EMPLOYMENT, j.employment_type) + '</select></label>' +
           '<label class="adm-field"><span>Work model</span><select name="work_model"' + lock + '>' + options(MODELS, j.work_model) + '</select></label>' +
           '<label class="adm-field"><span>Salary (optional)</span><input name="salary" placeholder="€1,200 + bonus" value="' + esc(j.salary) + '"></label>' +
-          '<label class="adm-field"><span>Apply link (optional)</span><input name="apply_url" type="url" placeholder="https://apply.workable.com/…" value="' + esc(j.apply_url) + '"></label>' +
+          (fromAtleable ? '<input type="hidden" name="apply_url" value="' + esc(j.apply_url) + '">' : '<label class="adm-field"><span>Apply link (optional)</span><input name="apply_url" type="url" placeholder="https://…" value="' + esc(j.apply_url) + '"></label>') +
           '<div class="adm-field adm-span2"><span>Job description</span><div class="adm-quill" id="adm-desc"></div></div>' +
         '</div>' +
         '<div class="adm-side">' +

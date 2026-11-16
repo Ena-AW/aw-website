@@ -64,7 +64,8 @@ Atleable's jobs are in the same Supabase database (`public.jobs`), so the websit
 
 - `website.sync_atleable_jobs()` (`supabase/migrations/20261116150000_atleable_jobs_sync.sql`) copies jobs published in Atleable into `website.jobs`. Edits to the title, description, location, employment type and work model follow; when a job is archived, unpublished or deleted in Atleable it is closed on the website.
 - Which jobs go on the site is set in `website.atleable_rule()`: `mkt` (the current setting: only published jobs of the MKT client), `all` (every published job) or `manual` (copied in as drafts).
-- Position, language, salary, apply link (default `https://apply.workable.com/j/<shortcode>`), web address and spotlight are set in the admin panel and never overwritten. Setting a job to Closed in the admin hides it until its state changes in Atleable.
+- Applications never go to Workable: the job page's apply form sends the CV to the job's pipeline in Atleable (`website.jobs.atleable_id` is Atleable's job id).
+- Position, language, salary, web address and spotlight are set in the admin panel and never overwritten. Setting a job to Closed in the admin hides it until its state changes in Atleable.
 - The `atleable-sync` Edge Function runs the sync and rebuilds the site when something changed. It is called every 15 minutes by `.github/workflows/atleable-sync.yml`, by the **Sync from Atleable** button in the admin's Jobs tab, and, if you want jobs to appear right away, by Atleable after it saves a job:
 
   ```
