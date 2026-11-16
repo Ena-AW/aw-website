@@ -1,0 +1,77 @@
+<!-- nav: jobs -->
+<!DOCTYPE html>
+<html lang="en" data-root="{{root}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{job.title}} — Atlean World</title>
+<meta name="description" content="{{job.summary}}">
+<link rel="icon" href="{{root}}favicon.ico" sizes="any">
+<link rel="icon" href="{{root}}media/brand/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="{{root}}media/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="{{root}}assets/css/site.css">
+<link rel="stylesheet" href="{{root}}assets/css/talks.css">
+<link rel="stylesheet" href="{{root}}assets/css/job.css">
+<script src="{{root}}assets/js/site.js" defer></script>
+<script src="{{root}}assets/js/job.js" defer></script>
+<!-- Cloudflare Turnstile (anti-bot check for the apply form) -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+
+<!-- include:header -->
+
+<!-- One job. build.py fills the {{job.*}} fields for every published job. -->
+<main class="aw-talks aw-job" id="content">
+
+  <header class="aw-thero aw-thero--job">
+    <img class="aw-thero__mark" src="{{root}}media/brand/favicon.png" alt="" aria-hidden="true">
+    <div class="aw-thero__inner">
+      <a class="aw-post__back" href="{{root}}open-jobs/">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Open jobs
+      </a>
+      {{job.kicker_html}}
+      <h1 class="aw-thero__title">{{job.title}}</h1>
+      <ul class="aw-job__chips">{{job.chips_html}}</ul>
+      <div class="aw-job__cta"><a class="aw-tbtn aw-tbtn--light" href="#apply">Apply now</a></div>
+    </div>
+  </header>
+
+  <div class="aw-twrap aw-job__grid">
+    <article class="aw-prose aw-job__desc">
+{{job.description}}
+    </article>
+
+    <aside class="aw-job__facts" aria-labelledby="aw-facts-title">
+      <h2 class="aw-job__facts-title" id="aw-facts-title">The job at a glance</h2>
+      <dl>{{job.facts_html}}</dl>
+      <a class="aw-tbtn aw-job__facts-btn" href="#apply">Apply now</a>
+    </aside>
+  </div>
+
+  <section class="aw-apply" id="apply" aria-labelledby="aw-apply-title">
+    <div class="aw-twrap aw-apply__inner">
+      <div class="aw-apply__text">
+        <h2 class="aw-apply__title" id="aw-apply-title">Apply for this job</h2>
+        <p>Send us your CV and a recruiter will get back to you. It takes about two minutes.</p>
+      </div>
+{{job.apply_html}}
+    </div>
+  </section>
+
+  <section class="aw-tcta" aria-labelledby="aw-tcta-title">
+    <div class="aw-twrap aw-tcta__inner">
+      <h2 class="aw-tcta__title" id="aw-tcta-title">Not quite the right fit?</h2>
+      <div class="aw-tcta__btns">
+        <a class="aw-tbtn" href="{{root}}open-jobs/">See all open jobs</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- include:footer -->
+
+</body>
+</html>

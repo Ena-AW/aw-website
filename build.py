@@ -105,12 +105,27 @@ LANG_CODES = {
 }
 
 
-def write_job_data():
+def load_jobs():
+    """Published jobs as rows of website.jobs: from Supabase (the admin panel and
+    the Atleable sync write there), or from data/jobs.json without Supabase."""
+    if os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_ANON_KEY"):
+        return supabase_get("jobs", "select=*&status=eq.published&order=updated_at.desc")
+    path = ROOT / "data" / "jobs.json"
+    rows = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    return [{
+        "slug": j["slug"], "title": j["title"], "location": j.get("location", ""), "location_slug": j.get("locationSlug", ""),
+        "country": j.get("country", ""), "position": j.get("position", ""), "language": j.get("language", ""),
+        "employment_type": j.get("employmentType", ""), "work_model": j.get("workModel", ""),
+        "salary": j.get("salary", ""), "description": j.get("description", ""), "apply_url": j.get("applyUrl", ""),
+        "atleable_id": j.get("atleableId"), "created_at": j.get("createdAt", ""),
+    } for j in rows]
+
+
+def write_job_data(rows):
     """With Supabase configured, the jobs list and the home page's spotlight
     jobs come from the admin panel instead of the JSON files in data/."""
     if not (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_ANON_KEY")):
         return
-    rows = supabase_get("jobs", "select=*&status=eq.published&order=updated_at.desc")
     jobs = [{
         "slug": r["slug"], "title": r["title"], "location": r["location"], "locationSlug": r["location_slug"],
         "country": r["country"], "position": r["position"], "language": r["language"],
@@ -124,6 +139,141 @@ def write_job_data():
     (OUT / "data" / "jobs.json").write_text(json.dumps(jobs, ensure_ascii=False, indent=1), encoding="utf-8")
     (OUT / "data" / "spotlight-jobs.json").write_text(json.dumps(spotlight, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"Loaded {len(jobs)} job(s) from Supabase, {len(spotlight)} in the spotlight")
+
+
+JOB_RE = re.compile(r"\{\{job\.(\w+)\}\}")
+CONSENT_TEXT = ("I agree that Atlean World keeps my CV and the details in this form to consider me for this job "
+                "and similar ones, as explained in the Privacy Policy. I can ask for them to be deleted at any time.")
+# Country codes for the phone field: the markets we recruit for first, then the rest A to Z.
+PHONE_CODES = [
+    ("PT", "+351"), ("GR", "+30"), ("BG", "+359"), ("PL", "+48"), ("CY", "+357"), ("ES", "+34"), ("DE", "+49"),
+    ("NL", "+31"), ("BE", "+32"), ("FR", "+33"), ("IT", "+39"), ("GB", "+44"), ("IE", "+353"),
+    ("AL", "+355"), ("AR", "+54"), ("AT", "+43"), ("AU", "+61"), ("BA", "+387"), ("BR", "+55"), ("CA", "+1"),
+    ("CH", "+41"), ("CL", "+56"), ("CN", "+86"), ("CO", "+57"), ("CZ", "+420"), ("DK", "+45"), ("DZ", "+213"),
+    ("EE", "+372"), ("EG", "+20"), ("FI", "+358"), ("GE", "+995"), ("HR", "+385"), ("HU", "+36"), ("IL", "+972"),
+    ("IN", "+91"), ("IR", "+98"), ("IS", "+354"), ("JP", "+81"), ("KR", "+82"), ("LB", "+961"), ("LT", "+370"),
+    ("LU", "+352"), ("LV", "+371"), ("MA", "+212"), ("MD", "+373"), ("ME", "+382"), ("MK", "+389"), ("MT", "+356"),
+    ("MX", "+52"), ("NO", "+47"), ("PE", "+51"), ("PH", "+63"), ("RO", "+40"), ("RS", "+381"), ("RU", "+7"),
+    ("SE", "+46"), ("SI", "+386"), ("SK", "+421"), ("TN", "+216"), ("TR", "+90"), ("UA", "+380"), ("US", "+1"),
+    ("VE", "+58"), ("ZA", "+27"),
+]
+
+
+def apply_endpoint():
+    """The website-apply Edge Function, which forwards applications to Atleable."""
+    url = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
+    return f"{url}/functions/v1/website-apply" if url else ""
+
+
+def render_apply(job):
+    """The apply form. Jobs from Atleable send the CV straight to that job's
+    pipeline in Atleable (via website-apply); other jobs use their apply link."""
+    if not job.get("atleable_id"):
+        if job.get("apply_url"):
+            return f'<p><a class="aw-tbtn" href="{esc(job["apply_url"])}" rel="noopener">Apply now</a></p>'
+        return '<p>Online applications for this job aren’t open yet. Please check back soon.</p>'
+    codes = "".join(f'<option value="{c}"{" selected" if cc == "PT" else ""}>{cc} {c}</option>' for cc, c in PHONE_CODES)
+    return f"""      <form class="aw-aform" id="aw-apply-form" novalidate data-endpoint="{esc(apply_endpoint())}">
+        <input type="hidden" name="job_id" value="{esc(job["atleable_id"])}">
+        <div class="aw-arow">
+          <div class="aw-afield">
+            <label class="aw-alabel" for="aw-a-name">Full name</label>
+            <input class="aw-ainput" id="aw-a-name" name="name" type="text" required maxlength="120" autocomplete="name" aria-describedby="aw-a-name-err">
+            <p class="aw-aerr" id="aw-a-name-err" data-for="name"></p>
+          </div>
+          <div class="aw-afield">
+            <label class="aw-alabel" for="aw-a-email">Email</label>
+            <input class="aw-ainput" id="aw-a-email" name="email" type="email" required maxlength="200" autocomplete="email" aria-describedby="aw-a-email-err">
+            <p class="aw-aerr" id="aw-a-email-err" data-for="email"></p>
+          </div>
+        </div>
+        <div class="aw-arow">
+          <div class="aw-afield">
+            <label class="aw-alabel" for="aw-a-phone">Phone</label>
+            <div class="aw-aphone">
+              <select class="aw-ainput aw-aphone__code" name="phone_code" aria-label="Country code" autocomplete="tel-country-code">{codes}</select>
+              <input class="aw-ainput" id="aw-a-phone" name="phone_number" type="tel" required inputmode="tel" maxlength="20" autocomplete="tel-national" placeholder="912 345 678" aria-describedby="aw-a-phone-err">
+            </div>
+            <p class="aw-aerr" id="aw-a-phone-err" data-for="phone"></p>
+          </div>
+          <div class="aw-afield">
+            <label class="aw-alabel" for="aw-a-linkedin">LinkedIn profile <span class="aw-aopt">optional</span></label>
+            <input class="aw-ainput" id="aw-a-linkedin" name="linkedin_url" type="url" maxlength="300" placeholder="linkedin.com/in/your-name" aria-describedby="aw-a-linkedin-err">
+            <p class="aw-aerr" id="aw-a-linkedin-err" data-for="linkedin_url"></p>
+          </div>
+        </div>
+        <div class="aw-afield">
+          <span class="aw-alabel" id="aw-a-cv-label">CV</span>
+          <label class="aw-afile" for="aw-a-cv">
+            <input id="aw-a-cv" name="cv" type="file" required accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-labelledby="aw-a-cv-label" aria-describedby="aw-a-cv-hint aw-a-cv-err">
+            <span class="aw-afile__btn">Choose file</span>
+            <span class="aw-afile__name" data-empty="No file chosen">No file chosen</span>
+          </label>
+          <p class="aw-ahint" id="aw-a-cv-hint">PDF or Word, up to 10 MB.</p>
+          <p class="aw-aerr" id="aw-a-cv-err" data-for="cv"></p>
+        </div>
+        <div class="aw-afield">
+          <label class="aw-acheck">
+            <input type="checkbox" name="consent" value="true" required aria-describedby="aw-a-consent-err">
+            <span data-consent-text>{esc(CONSENT_TEXT)} <a href="{{{{root}}}}privacy-policy/" target="_blank" rel="noopener">Read the Privacy Policy</a>.</span>
+          </label>
+          <p class="aw-aerr" id="aw-a-consent-err" data-for="consent"></p>
+        </div>
+        <input type="hidden" name="consent_text" value="{esc(CONSENT_TEXT)}">
+        <div class="aw-ahp" aria-hidden="true"><label>Leave this field empty<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAEj9k0XBclhf6p7N" data-theme="light"></div>
+        <p class="aw-aerr" data-for="captcha"></p>
+        <button class="aw-tbtn aw-asubmit" type="submit">Send application</button>
+        <p class="aw-astatus" role="status" aria-live="polite"></p>
+      </form>
+      <div class="aw-athanks" id="aw-apply-thanks" tabindex="-1" hidden>
+        <h3>Thank you, your application is in.</h3>
+        <p>A recruiter will look at your CV and contact you by email or phone. Meanwhile, have a look at our <a href="{{{{root}}}}open-jobs/">other open jobs</a>.</p>
+      </div>"""
+
+
+def plain_text(body):
+    return " ".join(htmlmod.unescape(re.sub(r"<[^>]+>", " ", body or "")).split())
+
+
+EMPTY_P_RE = re.compile(r"<p>(?:\s|&nbsp;|<br\s*/?>)*</p>", re.I)
+RULE_P_RE = re.compile(r"<p>(?:<(?:em|strong)>)*\s*[:.\-_=*~•·]{8,}\s*(?:</(?:em|strong)>)*</p>", re.I)
+
+
+def clean_description(body):
+    """Atleable descriptions come from Workable: drop the empty spacer
+    paragraphs and turn "::::::::" divider lines into a real divider."""
+    body = RULE_P_RE.sub("<hr>", body or "")
+    body = EMPTY_P_RE.sub("", body)
+    return re.sub(r"(?:\s*<hr>\s*){2,}", "<hr>", body).strip()
+
+
+def render_job(template, job):
+    loc = job.get("location") or job.get("country") or ""
+    facts = [("Location", loc), ("Language", job.get("language")), ("Area", job.get("position")),
+             ("Work model", job.get("work_model")), ("Contract", job.get("employment_type")), ("Salary", job.get("salary"))]
+    summary = plain_text(job.get("description"))
+    summary = summary if len(summary) <= 155 else summary[:155].rsplit(" ", 1)[0] + "…"
+    values = {
+        "title": esc(job["title"]),
+        "summary": esc(summary or f'{job["title"]} in {loc}. Apply with Atlean World.'),
+        "kicker_html": f'<p class="aw-job__kicker">{esc(job["language"])}-speaking role</p>' if job.get("language") else "",
+        "chips_html": "".join(f"<li>{esc(v)}</li>" for v in (loc, job.get("work_model"), job.get("employment_type")) if v),
+        "facts_html": "".join(f"<div><dt>{k}</dt><dd>{esc(v)}</dd></div>" for k, v in facts if v),
+        "description": lazy_images(clean_description(job.get("description"))) or f"<p>{esc(job['title'])}, {esc(loc)}.</p>",
+        "apply_html": render_apply(job),
+    }
+
+    def field(m):
+        if m.group(1) not in values:
+            sys.exit(f"job template: unknown field '{{{{job.{m.group(1)}}}}}'")
+        return values[m.group(1)]
+    return JOB_RE.sub(field, template)
+
+
+def job_seo(job):
+    return {"type": "job", "job": job,
+            "breadcrumbs": [("Home", ""), ("Open jobs", "open-jobs/"), (job["title"], f"jobs/{job['slug']}/")]}
 
 
 TEAM_DIR = ROOT / "media" / "team" / "web"
@@ -247,6 +397,14 @@ def build():
             sys.exit(f"post slug '{post['slug']}' clashes with a page or folder of the site")
         sources.append((Path(post["slug"]) / "index.html", render_post(template, post, posts), post_seo(post)))
 
+    jobs = load_jobs()
+    job_template = (SRC / "templates" / "job.html").read_text(encoding="utf-8")
+    for job in jobs:
+        if not SLUG_RE.match(job["slug"] or ""):
+            print(f"skipping job '{job['title']}': bad slug '{job['slug']}'")
+            continue
+        sources.append((Path("jobs") / job["slug"] / "index.html", render_job(job_template, job), job_seo(job)))
+
     sitemap = []
     for rel, html, meta in sources:
         depth = len(rel.parts) - 1
@@ -290,13 +448,13 @@ def build():
     (OUT / "sitemap.xml").write_text(seo.sitemap_xml(sitemap), encoding="utf-8")
     (OUT / "robots.txt").write_text(seo.robots_txt(), encoding="utf-8")
 
-    write_job_data()
+    write_job_data(jobs)
     # the three newest articles, for the Atlean Talks section of the home page
     latest = [{"title": p["title"], "url": f"{p['slug']}/", "date": p["date"], "cover": p["cover"]} for p in posts[:3]]
     (OUT / "data" / "team-photos.json").write_text(json.dumps(team_photos()), encoding="utf-8")   # for the admin panel
     (OUT / "data" / "talks-latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=1), encoding="utf-8")
 
-    print(f"Built {len(sources)} page(s), {len(posts)} of them blog posts, into {OUT.relative_to(ROOT)}/")
+    print(f"Built {len(sources)} page(s), {len(posts)} of them blog posts and {len(jobs)} job pages, into {OUT.relative_to(ROOT)}/")
 
 
 if __name__ == "__main__":
