@@ -170,8 +170,8 @@ def render_apply(job):
     pipeline in Atleable (via website-apply); other jobs use their apply link."""
     if not job.get("atleable_id"):
         if job.get("apply_url"):
-            return f'<p><a class="aw-tbtn" href="{esc(job["apply_url"])}" rel="noopener">Apply now</a></p>'
-        return '<p>Online applications for this job aren’t open yet. Please check back soon.</p>'
+            return f'<p><a class="aw-btn aw-btn--solid" href="{esc(job["apply_url"])}" rel="noopener">Apply now</a></p>'
+        return '<p class="aw-text">Online applications for this job aren’t open yet. Please check back soon.</p>'
     codes = "".join(f'<option value="{c}"{" selected" if cc == "PT" else ""}>{cc} {c}</option>' for cc, c in PHONE_CODES)
     return f"""      <form class="aw-aform" id="aw-apply-form" novalidate data-endpoint="{esc(apply_endpoint())}">
         <input type="hidden" name="job_id" value="{esc(job["atleable_id"])}">
@@ -223,12 +223,13 @@ def render_apply(job):
         <div class="aw-ahp" aria-hidden="true"><label>Leave this field empty<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
         <div class="cf-turnstile" data-sitekey="0x4AAAAAAEj9k0XBclhf6p7N" data-theme="light"></div>
         <p class="aw-aerr" data-for="captcha"></p>
-        <button class="aw-tbtn aw-asubmit" type="submit">Send application</button>
+        <button class="aw-btn aw-btn--solid aw-asubmit" type="submit">Send application</button>
         <p class="aw-astatus" role="status" aria-live="polite"></p>
       </form>
-      <div class="aw-athanks" id="aw-apply-thanks" tabindex="-1" hidden>
-        <h3>Thank you, your application is in.</h3>
-        <p>A recruiter will look at your CV and contact you by email or phone. Meanwhile, have a look at our <a href="{{{{root}}}}open-jobs/">other open jobs</a>.</p>
+      <div class="aw-done" id="aw-apply-thanks" hidden>
+        <span class="aw-done__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <h3 class="aw-done__title" tabindex="-1">Thank you, your application is in.</h3>
+        <p class="aw-done__text">A recruiter will look at your CV and contact you by email or phone. Meanwhile, have a look at our <a class="aw-link" href="{{{{root}}}}open-jobs/">other open jobs</a>.</p>
       </div>"""
 
 
@@ -248,20 +249,241 @@ def clean_description(body):
     return re.sub(r"(?:\s*<hr>\s*){2,}", "<hr>", body).strip()
 
 
+BLOCK_RE = re.compile(r"<(p|h[1-6]|ul|ol|blockquote|table|div|figure)\b[^>]*>.*?</\1\s*>|<hr\b[^>]*>", re.I | re.S)
+BOLD_RE = re.compile(r"<(strong|b)\b[^>]*>(.*?)</\1>", re.I | re.S)
+BAR_LABELS = [  # short names for the section bar, from words in a chapter's title
+    (r"requirement|looking for|profile|you have|you need|skills", "Requirements"),
+    (r"expect|benefit|offer|perks|why join|what we give", "Benefits"),
+    (r"relocat", "Relocation"),
+    (r"schedule|hours|shift", "Schedule"),
+    (r"salary|pay\b", "Pay"),
+    (r"atlean world|about us|who we are", "About us"),
+    (r"journey|process|next step|how it works|after you apply", "How it works"),
+    (r"role|responsib|you will|what you.ll do", "The role"),
+]
+
+
+HEADING_WORDS = re.compile(r"\b(role|requirements?|responsibilit|benefits?|offer|profile|about|who we|why|schedule|salary|relocation|what you|you will|your mission|skills|perks)", re.I)
+
+
+def heading_text(block, next_block, chunk_start=False):
+    """The text of a block that reads as a heading, or None. Atleable descriptions
+    mark headings as <h3> or as a short bold line ("Requirements", "What we offer:")."""
+    tag = block[1:3].lower()
+    text = plain_text(block)
+    if tag in ("h1", "h2", "h3", "h4"):
+        return text or None
+    if tag[0] != "p" or not text or len(text) > 70:
+        return None
+    bold = sum(len(plain_text(m.group(2))) for m in BOLD_RE.finditer(block))
+    if bold < 0.6 * len(text) or text.endswith(("!", ".")):
+        return None
+    words = len(text.split())
+    before_list = bool(next_block) and next_block[1:3].lower() in ("ul", "ol")
+    if text.endswith(":") or (words <= 4 and before_list) or (words <= 4 and HEADING_WORDS.search(text)):
+        return text
+    if chunk_start and words <= 8:   # a short bold line right after a divider
+        return text
+    return None
+
+
+def tidy_title(text):
+    text = re.sub(r"[\s:👇✨🚀🌍💌📄]+$", "", text).strip()
+    text = re.sub(r"^[^\w(]+", "", text).strip()
+    return text[:1].upper() + text[1:]
+
+
+def bar_label(title, index):
+    low = title.lower()
+    for pattern, label in BAR_LABELS:
+        if re.search(pattern, low):
+            return label
+    return " ".join(title.split()[:3]) if index else "The role"
+
+
+def job_chapters(description):
+    """Split the description into chapters at its dividers and headings:
+    [(title, html), ...]. The first one is "The role" unless it has its own heading."""
+    body = clean_description(description)
+    blocks = [m.group(0) for m in BLOCK_RE.finditer(body)]
+    if not blocks:
+        return [("The role", body)] if body.strip() else []
+    chapters, title, current = [], None, []
+    for i, block in enumerate(blocks):
+        if block[:3].lower() == "<hr":
+            if current:
+                chapters.append((title, current))
+            title, current = None, []
+            continue
+        nxt = blocks[i + 1] if i + 1 < len(blocks) else None
+        head = heading_text(block, nxt, chunk_start=not current and title is None)
+        if head and nxt and nxt[:3].lower() != "<hr" and len(chapters) < 6:
+            if current or title:
+                chapters.append((title, current))
+            title, current = tidy_title(head), []
+            continue
+        current.append(block)
+    if current:
+        chapters.append((title, current))
+    out = []
+    for n, (t, blocks_) in enumerate(chapters):
+        if not blocks_:
+            continue
+        html_ = "\n".join(blocks_)
+        if not t:
+            t = "About Atlean World" if re.match(r"\W*atlean world is", plain_text(html_), re.I) else ("The role" if not out else "Good to know")
+        out.append((t, html_))
+    # the opening company blurb repeats the page's closing section: leave it out
+    if len(out) > 1 and out[0][0] == "About Atlean World":
+        out = out[1:]
+    # a chapter of one short line reads better as the end of the one before
+    merged = []
+    for t, html_ in out:
+        if merged and len(plain_text(html_)) < 90:
+            pt, ph = merged[-1]
+            merged[-1] = (pt, ph + f"\n<p><strong>{esc(t)}</strong></p>\n" + html_)
+        else:
+            merged.append((t, html_))
+    return merged
+
+
+PHOTOS_FILE = ROOT / "data" / "city-photos.json"
+PHOTO_WIDTHS = (480, 800, 1200, 1600, 2000)
+
+
+def place_key(text):
+    """"Gdańsk" -> "gdansk", "Viana do Castelo" -> "viana-do-castelo"."""
+    import unicodedata
+    text = unicodedata.normalize("NFKD", (text or "").replace("ł", "l").replace("Ł", "L"))
+    return re.sub(r"[^a-z0-9]+", "-", text.encode("ascii", "ignore").decode().lower()).strip("-")
+
+
+def load_city_photos():
+    return json.loads(PHOTOS_FILE.read_text(encoding="utf-8")) if PHOTOS_FILE.exists() else {"cities": {}, "countries": {}}
+
+
+def photo_pool(job, library):
+    """The Unsplash photos a job can use: its city's, or else every photo of its
+    country's cities (for "Portugal" or a small town). Returns (key, photos)."""
+    loc = job.get("location") or ""
+    city = place_key(loc.split(",")[0]) if "," in loc else ""
+    if city in library["cities"]:
+        return city, library["cities"][city]
+    country = place_key(job.get("country") or loc.split(",")[-1])
+    photos = [p for c in library["countries"].get(country, []) for p in library["cities"].get(c, [])]
+    return country, photos
+
+
+def assign_photos(jobs):
+    """Jobs in the same city start at different photos: they take turns, oldest
+    job first, so two Lisbon jobs never open on the same picture (until a city
+    has more jobs than photos)."""
+    library = load_city_photos()
+    groups = {}
+    for job in sorted(jobs, key=lambda j: (str(j.get("created_at") or ""), j["slug"])):
+        key, pool = photo_pool(job, library)
+        if not pool:
+            job["_photos"] = []
+            continue
+        n = groups.get(key, 0)
+        groups[key] = n + 1
+        job["_photos"] = pool[n % len(pool):] + pool[:n % len(pool)]
+
+
+def photo_img(photo, sizes, eager=False):
+    base = photo["src"].split("?")[0] + "?auto=format&fit=crop&q=75&ixlib=rb-4.1.0&w="
+    srcset = ", ".join(f"{base}{w} {w}w" for w in PHOTO_WIDTHS)
+    loading = 'loading="eager" fetchpriority="high"' if eager else 'loading="lazy"'
+    return (f'<img class="aw-photo__img" src="{esc(base)}1600" srcset="{esc(srcset)}" sizes="{sizes}" '
+            f'width="1600" height="1067" alt="{esc(photo.get("alt", ""))}" {loading} decoding="async">')
+
+
+def photo_credits(photos):
+    seen, links = set(), []
+    for p in photos:
+        if p.get("by") and p["page"] not in seen:
+            seen.add(p["page"])
+            links.append(f'<a href="{esc(p["page"])}" target="_blank" rel="noopener noreferrer">{esc(p["by"])}</a>')
+    if not links:
+        return ""
+    names = links[0] if len(links) == 1 else ", ".join(links[:-1]) + " and " + links[-1]
+    return f'<p class="aw-credits">Photography from Unsplash: {names}.</p>'
+
+
+def job_summary(job, loc):
+    """One or two sentences for the opening: the first paragraph that is about
+    the job, not the company blurb."""
+    for m in BLOCK_RE.finditer(clean_description(job.get("description"))):
+        text = plain_text(m.group(0))
+        if len(text) > 60 and not re.match(r"atlean world is", text, re.I):
+            if len(text) <= 220:
+                return text
+            cut = text[:220]
+            end = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
+            return cut[:end + 1] if end > 80 else cut.rsplit(" ", 1)[0] + "…"
+    return f"{job['title']} in {loc}. Apply with Atlean World."
+
+
 def render_job(template, job):
     loc = job.get("location") or job.get("country") or ""
-    facts = [("Location", loc), ("Language", job.get("language")), ("Area", job.get("position")),
-             ("Work model", job.get("work_model")), ("Contract", job.get("employment_type")), ("Salary", job.get("salary"))]
-    summary = plain_text(job.get("description"))
-    summary = summary if len(summary) <= 155 else summary[:155].rsplit(" ", 1)[0] + "…"
+    city = loc.split(",")[0].strip()
+    facts = [("Location", loc), ("Language", job.get("language")), ("Work model", job.get("work_model")),
+             ("Contract", job.get("employment_type")), ("Gross pay", job.get("salary"))]
+    facts = [(k, v) for k, v in facts if v]
+    summary = job_summary(job, loc)
+    chapters = job_chapters(job.get("description")) or [("The role", f"<p>{esc(job['title'])}, {esc(loc)}.</p>")]
+    ids, used = [], set()
+    for i, (t, _) in enumerate(chapters):
+        cid = re.sub(r"[^a-z0-9]+", "-", bar_label(t, i).lower()).strip("-") or f"part-{i + 1}"
+        while cid in used:
+            cid += "-2"
+        used.add(cid)
+        ids.append(cid)
+    photos = job.get("_photos") or []
+    used_photos = photos[:1]
+
+    def chapter_photo(i):
+        # chapters after the first get the next photos of the city, under their title
+        if i == 0 or i >= len(photos) or i > 2:
+            return ""
+        used_photos.append(photos[i])
+        return f'\n        <figure class="aw-photo">{photo_img(photos[i], "(min-width: 992px) 30vw, 92vw")}</figure>'
+    chapters_html = "\n".join(
+        f'''  <section class="aw-chapter" id="{ids[i]}" aria-labelledby="aw-{ids[i]}-title">
+    <div class="aw-wrap aw-chapter__grid">
+      <div class="aw-chapter__head">
+        <h2 class="aw-chapter__title" id="aw-{ids[i]}-title">{esc(t)}</h2>{chapter_photo(i)}
+      </div>
+      <div class="aw-chapter__body aw-prose">
+{lazy_images(h)}
+      </div>
+    </div>
+  </section>''' for i, (t, h) in enumerate(chapters))
+    bar_html = "".join(f'<li><a class="aw-bar__link" href="#{ids[i]}">{esc(bar_label(t, i))}</a></li>' for i, (t, _) in enumerate(chapters))
+    country = (job.get("country") or loc.split(",")[-1]).strip().lower()
+    photo = ROOT / "media" / "destinations" / f"{country}.jpg"
+    if photos:
+        photo_html = f'        <figure class="aw-photo aw-intro__photo">{photo_img(photos[0], "(min-width: 992px) 56vw, 92vw", eager=True)}</figure>'
+    elif country and photo.exists():   # no Unsplash photos for this place: the country photo of the Destinations section
+        photo_html = (f'        <figure class="aw-photo aw-intro__photo"><img class="aw-photo__img" src="{{{{root}}}}media/destinations/{country}.jpg" '
+                      f'width="1600" height="1067" alt="{esc(city or country.title())}" loading="eager" fetchpriority="high" decoding="async"></figure>')
+    else:
+        photo_html = ""
     values = {
         "title": esc(job["title"]),
-        "summary": esc(summary or f'{job["title"]} in {loc}. Apply with Atlean World.'),
-        "kicker_html": f'<p class="aw-job__kicker">{esc(job["language"])}-speaking role</p>' if job.get("language") else "",
-        "chips_html": "".join(f"<li>{esc(v)}</li>" for v in (loc, job.get("work_model"), job.get("employment_type")) if v),
-        "facts_html": "".join(f"<div><dt>{k}</dt><dd>{esc(v)}</dd></div>" for k, v in facts if v),
-        "description": lazy_images(clean_description(job.get("description"))) or f"<p>{esc(job['title'])}, {esc(loc)}.</p>",
+        "place": esc(city or loc or "Atlean World"),
+        "summary": esc(summary),
+        "kicker": esc(f'{job["language"]}-speaking role in {city}' if job.get("language") and city
+                      else (f"Job in {city}" if city else "Open job")),
+        "grid_class": "" if photo_html else " aw-intro__grid--solo",
+        "photo_html": photo_html,
+        "facts_class": {3: " aw-keyfacts--3", 4: " aw-keyfacts--4"}.get(len(facts), ""),
+        "facts_html": "".join(f'<div class="aw-key"><dt class="aw-key__label">{k}</dt><dd class="aw-key__value">{esc(v)}</dd></div>' for k, v in facts),
+        "first_id": ids[[bar_label(t, i) for i, (t, _) in enumerate(chapters)].index("The role")] if any(bar_label(t, i) == "The role" for i, (t, _) in enumerate(chapters)) else ids[0],
+        "bar_html": bar_html,
+        "chapters_html": chapters_html,
         "apply_html": render_apply(job),
+        "credits_html": photo_credits(used_photos),
     }
 
     def field(m):
@@ -398,6 +620,7 @@ def build():
         sources.append((Path(post["slug"]) / "index.html", render_post(template, post, posts), post_seo(post)))
 
     jobs = load_jobs()
+    assign_photos(jobs)
     job_template = (SRC / "templates" / "job.html").read_text(encoding="utf-8")
     for job in jobs:
         if not SLUG_RE.match(job["slug"] or ""):

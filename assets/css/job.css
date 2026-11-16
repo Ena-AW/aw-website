@@ -1,123 +1,810 @@
 /* =========================================================================
-   ATLEAN WORLD · ONE JOB (/jobs/<slug>/)
-   Builds on talks.css (banner, reading text, buttons): the job's facts sit
-   beside the description, and the apply form closes the page.
+   ATLEAN WORLD · ONE JOB (/jobs/<slug>/), from src/templates/job.html
+   Part 1 is Ena's job description design (reference/job-description-customer-advisor.html),
+   unchanged. Part 2 adapts it to every job: the description from Atleable as
+   reading text, and the apply form that sends the CV to Atleable.
    ========================================================================= */
 
-.aw-job { --aw-error: #b3203f; --aw-success: #137a44; }
+/* =========================================================================
+   ATLEAN WORLD · JOB DESCRIPTION · Customer Advisor (Lisbon)
+   Everything is scoped to .aw-jd so nothing leaks into the theme's header or footer.
+   Same design system as the Home, About Us, Employer Solutions, Privacy and Terms pages,
+   with one deliberate difference: there is NO banner. The page opens on the job title and
+   Maria Fox's video, then the key facts, and tells the story in order: the role, why it's
+   right for you, the contract, the schedule, the pay, the move, the city, the FAQ and the
+   country. It ends with the questionnaire that confirms the application.
+   ========================================================================= */
 
-/* ---- banner ---- */
-.aw-thero--job { min-height: 0; }
-.aw-thero--job .aw-thero__title { font-size: clamp(2rem, 1rem + 3.6vw, 3.75rem); line-height: 1.06; letter-spacing: -0.03em; max-width: 52rem; }
-.aw-job__kicker {
-  margin: 0 0 0.9rem; font-size: 0.9375rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
+html:has(.aw-jd) { scroll-padding-top: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.aw-jd) { scroll-behavior: smooth; }
 }
-.aw-job__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
-.aw-job__chips li {
-  padding: 0.4rem 0.9rem; border-radius: 999px;
-  font-size: 0.9375rem; font-weight: 500; line-height: 1.3; color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
-}
-.aw-job__cta { margin-top: 2rem; }
-.aw-tbtn--light { color: var(--aw-navy); background: #fff; }
-.aw-tbtn--light:hover { background: var(--aw-tint); }
+body:has(.aw-jd) { margin: 0; }
 
-/* ---- description + facts ---- */
-.aw-job__grid {
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(2rem, 5vw, 4.5rem);
-  padding-top: clamp(1rem, 3vw, 2rem);
+.aw-jd {
+  /* brand palette */
+  --aw-navy:  #193360;
+  --aw-mid:   #6e87b2;
+  --aw-light: #b9cfea;
+  --aw-pale:  #d7dff2;
+  --aw-tint:  #f4f6fc;
+  --aw-white: #ffffff;
+
+  /* text tones (same hue, darker) */
+  --aw-ink:   #193360;   /* 12.5:1 on white */
+  --aw-body:  #34496f;   /*  9.0:1 on white */
+  --aw-muted: #4f668c;   /*  5.8:1 on white */
+  --aw-focus: #193360;
+  --aw-error: #b42318;   /*  6.5:1 on white */
+
+  /* measures */
+  --aw-header: 90px;                     /* height of the theme header (sticky) */
+  --aw-bar: 3.5rem;                      /* height of this page's section bar */
+  --aw-max: 1240px;
+  --aw-gutter: clamp(1.25rem, 4.5vw, 3.5rem);
+  --aw-seam: clamp(5rem, 12vw, 9rem);    /* height of the blue-to-white dissolve */
+  --aw-radius: 1.25rem;
+
+  /* type: the system font (covers Latin, Greek and Cyrillic) */
+  --aw-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  /* motion: critically damped spring (damping 1.0, no overshoot) */
+  --aw-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --aw-dur-fast: 0.4s;
+
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-x: clip;
+  color-scheme: light;
+  font-family: var(--aw-font);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--aw-body);
+  background: var(--aw-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
-.aw-job__desc { max-width: var(--aw-read); }
-.aw-job__desc img { max-width: 1.2em; vertical-align: -0.2em; }   /* emoji images copied from older posts */
-.aw-job__facts {
-  align-self: start; padding: 1.5rem; border-radius: 1.25rem;
-  background: var(--aw-tint);
+@supports (transition-timing-function: linear(0, 1)) {
+  .aw-jd {
+    --aw-ease: linear(0, 0.0369, 0.1219, 0.2275, 0.3374, 0.4422, 0.5372, 0.6204, 0.6916, 0.7513, 0.8009, 0.8414, 0.8743, 0.9008, 0.922, 0.9389, 0.9523, 0.9628, 0.9711, 0.9776, 0.9826, 0.9866, 0.9897, 0.992, 0.9939, 0.9953, 0.9964, 0.9972, 0.9979, 0.9984, 1);
+  }
 }
-.aw-job__facts-title { margin: 0 0 1rem; font-size: 1.125rem; font-weight: 650; letter-spacing: -0.01em; color: var(--aw-ink); }
-.aw-job__facts dl { margin: 0 0 1.5rem; }
-.aw-job__facts dl > div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.7rem 0; border-top: 1px solid var(--aw-pale); }
-.aw-job__facts dl > div:first-child { border-top: 0; padding-top: 0; }
-.aw-job__facts dt { font-size: 0.9375rem; color: var(--aw-muted); }
-.aw-job__facts dd { margin: 0; font-size: 0.9375rem; font-weight: 600; color: var(--aw-ink); text-align: right; }
-.aw-job__facts-btn { width: 100%; }
+
+/* ---- local reset (the theme sets margins and colours on h1–h6, p, a, dl, dd, ul…) ---- */
+.aw-jd *, .aw-jd *::before, .aw-jd *::after { box-sizing: border-box; }
+.aw-jd :where(h1, h2, h3, p, ul, ol, dl, dt, dd, figure) { margin: 0; padding: 0; }
+.aw-jd :where(ul, ol) { list-style: none; }
+.aw-jd :where(li) { margin: 0; padding: 0; }
+.aw-jd :where(h1, h2, h3) { text-wrap: balance; }
+.aw-jd :where(p) { text-wrap: pretty; }
+/* Typographic base for every piece of text in this block. The theme/Elementor set font, weight and colour
+   on h1–h3, p, dt and dd with their own specificity, so each element starts from a known state.
+   Single-class selectors only in here: :is() takes the specificity of its strongest argument. */
+.aw-jd :is(.aw-intro__kicker, .aw-intro__title, .aw-intro__sub, .aw-key__label, .aw-key__value, .aw-key__note,
+           .aw-video__who, .aw-video__what, .aw-video__soon,
+           .aw-bar__title, .aw-chapter__title, .aw-chapter__lead, .aw-statement, .aw-text,
+           .aw-perk__lead, .aw-perk__detail, .aw-step__label, .aw-step__big, .aw-step__text,
+           .aw-fact__n, .aw-fact__l, .aw-total__n, .aw-total__cap, .aw-ledger__t, .aw-ledger__v, .aw-ledger__hint,
+           .aw-note, .aw-callout, .aw-highlight, .aw-qa__text, .aw-qa__a, .aw-reason__title, .aw-reason__text,
+           .aw-confirm__fine, .aw-q__label, .aw-q__hint, .aw-q__err, .aw-q__n, .aw-q__notelabel, .aw-opt__face, .aw-check__text,
+           .aw-form__status, .aw-form__fine, .aw-form__nojs, .aw-done__title, .aw-done__text, .aw-done__note,
+           .aw-close__title, .aw-close__text, .aw-close__fine, .aw-credits) {
+  margin: 0; font-family: var(--aw-font); font-weight: 400; font-style: normal;
+  text-transform: none; letter-spacing: normal; color: var(--aw-body);
+}
+.aw-jd img, .aw-jd svg { display: block; max-width: 100%; }
+.aw-jd a, .aw-jd a:hover, .aw-jd a:focus, .aw-jd a:active { color: inherit; text-decoration: none; }
+.aw-jd :focus-visible { outline: 3px solid var(--aw-focus); outline-offset: 3px; }
+
+.aw-jd [hidden] { display: none; }
+.aw-jd .aw-wrap { width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin-inline: auto; }
+.aw-jd .aw-vh {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.aw-jd section { scroll-margin-top: calc(var(--aw-header) + var(--aw-bar)); }
+
+/* ---- buttons: instant press feedback on pointer-down, spring on release ---- */
+.aw-jd .aw-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3rem; margin: 0; padding: 0.8em 1.6em; border: 0; border-radius: 999px;
+  font: inherit; font-size: 1.0625rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em;
+  text-transform: none; color: var(--aw-navy); background: #fff; white-space: nowrap;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease), color var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-jd .aw-btn:hover, .aw-jd .aw-btn:focus { color: var(--aw-navy); background: var(--aw-pale); }
+.aw-jd .aw-btn:active { transform: scale(0.97); }
+/* on white: a solid navy pill, and a quiet outlined one for the secondary action */
+.aw-jd .aw-btn--solid { color: #fff; background: var(--aw-navy); }
+.aw-jd .aw-btn--solid:hover, .aw-jd .aw-btn--solid:focus { color: #fff; background: #12264a; }
+.aw-jd .aw-btn--ghost { color: var(--aw-navy); background: transparent; box-shadow: inset 0 0 0 1.5px var(--aw-navy); }
+.aw-jd .aw-btn--ghost:hover, .aw-jd .aw-btn--ghost:focus { color: var(--aw-navy); background: var(--aw-tint); }
+
+/* ---- photographs: rounded frames, cropped with object-fit, tinted while they load ---- */
+.aw-jd .aw-photo {
+  position: relative; margin: 0; overflow: hidden; isolation: isolate;
+  border-radius: var(--aw-radius); background-color: var(--aw-pale);
+  aspect-ratio: var(--ratio, 3 / 2);
+}
+.aw-jd .aw-photo__img {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0;
+  object-fit: cover; object-position: var(--pos, 50% 50%);
+}
+/* if a photo can't be loaded the frame disappears instead of showing a broken-image icon */
+.aw-jd .aw-photo.is-missing { display: none; }
+
+/* =========================================================================
+   1. OPENING · no banner: the title is the page. Then a photograph, then the facts.
+   ========================================================================= */
+.aw-jd .aw-intro { padding: clamp(3rem, 7vw, 6rem) 0 0; background: var(--aw-white); }
+.aw-jd .aw-intro__kicker {
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.3; letter-spacing: -0.008em; font-weight: 600; color: var(--aw-muted);
+}
+.aw-jd .aw-intro__title {
+  margin-top: 1rem;
+  font-size: clamp(2.25rem, 0.6rem + 5.4vw, 4.25rem);
+  line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; color: var(--aw-ink);
+  overflow-wrap: break-word;
+}
+.aw-jd .aw-intro__sub {
+  margin-top: 1.5rem; max-width: 40rem;
+  font-size: clamp(1.1875rem, 1.05rem + 0.5vw, 1.4375rem);
+  line-height: 1.4; letter-spacing: -0.012em; color: var(--aw-body);
+}
+.aw-jd .aw-intro__cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: clamp(1.75rem, 3vw, 2.25rem); }
+
+/* title and video side by side on wide screens, stacked below that */
+.aw-jd .aw-intro__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(2rem, 5vw, 3rem); align-items: center; }
 @media (min-width: 62rem) {
-  .aw-job__grid { grid-template-columns: minmax(0, 1fr) 20rem; }
-  .aw-job__facts { position: sticky; top: 1.5rem; }
-}
-/* phones: the facts come first, the description follows */
-@media (max-width: 61.9375rem) {
-  .aw-job__facts { order: -1; }
+  .aw-jd .aw-intro__grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(3rem, 5vw, 5rem); }
+  .aw-jd .aw-intro__title { font-size: clamp(2.75rem, 1.2rem + 2.6vw, 3.75rem); }
 }
 
-/* ---- apply ---- */
-.aw-apply { padding: clamp(3rem, 7vw, 6rem) 0; border-top: 1px solid var(--aw-pale); scroll-margin-top: 1rem; }
-.aw-apply__inner { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+/* Maria Fox's video: a poster and a play button until it is played, then the player takes its place.
+   Nothing is requested from the video host before that, so no cookies and no tracking on arrival. */
+.aw-jd .aw-video { margin: 0; }
+.aw-jd .aw-video__stage {
+  position: relative; aspect-ratio: 16 / 9; overflow: hidden; isolation: isolate;
+  border-radius: var(--aw-radius); background: var(--aw-navy);
+}
+.aw-jd .aw-video__poster {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0;
+  object-fit: cover; object-position: 50% 62%;
+}
+.aw-jd .aw-video__stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(18, 38, 74, 0.08) 0%, rgba(18, 38, 74, 0.34) 100%);
+}
+.aw-jd .aw-video__stage[data-state="playing"]::after { display: none; }
+.aw-jd .aw-video__btn, .aw-jd .aw-video__btn:hover, .aw-jd .aw-video__btn:focus, .aw-jd .aw-video__btn:active {
+  position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; width: 100%; height: 100%; margin: 0; padding: 0;
+  border: 0; border-radius: 0; box-shadow: none; background: transparent; color: var(--aw-navy);
+  cursor: pointer; font: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.aw-jd .aw-video__btn:focus-visible { outline: 3px solid transparent; outline-offset: -3px; }
+.aw-jd .aw-video__disc {
+  display: grid; place-items: center; width: clamp(4rem, 2.5rem + 4.5vw, 5.5rem); aspect-ratio: 1; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(14px) saturate(180%); backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: 0 10px 34px rgba(18, 38, 74, 0.35);
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-jd .aw-video__btn:hover .aw-video__disc, .aw-jd .aw-video__btn:focus .aw-video__disc { background: #fff; }
+.aw-jd .aw-video__btn:active .aw-video__disc { transform: scale(0.94); }
+.aw-jd .aw-video__btn:focus-visible .aw-video__disc { box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--aw-navy), 0 10px 34px rgba(18, 38, 74, 0.35); }
+.aw-jd .aw-video__disc svg { width: 36%; height: 36%; margin-left: 6%; }
+.aw-jd .aw-video__frame { position: absolute; inset: 0; z-index: 2; display: block; width: 100%; height: 100%; max-width: none; margin: 0; padding: 0; border: 0; background: #000; }
+.aw-jd .aw-video__stage[data-state="empty"] .aw-video__btn { cursor: default; }
+.aw-jd .aw-video__stage[data-state="empty"] .aw-video__disc { opacity: 0.55; }
+.aw-jd .aw-video__soon {
+  position: absolute; z-index: 1; left: 1rem; bottom: 1rem; padding: 0.4rem 0.85rem; border-radius: 999px;
+  font-size: 0.9375rem; font-weight: 600; line-height: 1.3; color: var(--aw-navy); background: rgba(255, 255, 255, 0.92);
+}
+.aw-jd .aw-video__soon[hidden] { display: none; }
+.aw-jd .aw-video__cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.75rem; margin-top: 0.875rem; }
+.aw-jd .aw-video__who { font-size: 1.0625rem; line-height: 1.4; letter-spacing: -0.01em; font-weight: 650; color: var(--aw-ink); }
+.aw-jd .aw-video__what { font-size: 1rem; line-height: 1.4; color: var(--aw-muted); }
+
+/* the key facts: a hairline table, label above value */
+.aw-jd .aw-keyfacts { margin-top: clamp(2.5rem, 5vw, 4rem); display: grid; grid-template-columns: minmax(0, 1fr); border-bottom: 1px solid var(--aw-pale); }
+.aw-jd .aw-key {
+  display: grid; grid-template-columns: minmax(5.5rem, 34%) minmax(0, 1fr); gap: 0.125rem 1rem; align-items: baseline;
+  padding: 1rem 0; border-top: 1px solid var(--aw-pale);
+}
+.aw-jd .aw-key__label { grid-column: 1; grid-row: 1 / span 2; font-size: 0.9375rem; line-height: 1.4; color: var(--aw-muted); }
+.aw-jd .aw-key__value { grid-column: 2; font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem); line-height: 1.25; letter-spacing: -0.016em; font-weight: 650; color: var(--aw-ink); }
+.aw-jd .aw-key__note { grid-column: 2; font-size: 0.9375rem; line-height: 1.4; color: var(--aw-muted); }
+@media (min-width: 40rem) {
+  .aw-jd .aw-keyfacts { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 2rem; border-bottom: 0; }
+  .aw-jd .aw-key { display: block; padding: 1.25rem 0 1.5rem; }
+  .aw-jd .aw-key__label { margin-bottom: 0.4rem; }
+  .aw-jd .aw-key__value { font-size: clamp(1.375rem, 1rem + 1vw, 1.75rem); }
+  .aw-jd .aw-key__note { margin-top: 0.25rem; }
+}
 @media (min-width: 62rem) {
-  .aw-apply__inner { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: clamp(3rem, 6vw, 6rem); }
+  .aw-jd .aw-keyfacts { grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 2rem; }
 }
-.aw-apply__title { margin: 0 0 0.75rem; font-size: clamp(1.75rem, 1.1rem + 2vw, 2.5rem); line-height: 1.1; letter-spacing: -0.025em; font-weight: 700; color: var(--aw-ink); }
-.aw-apply__text p { margin: 0; font-size: 1.0625rem; line-height: 1.55; }
 
-.aw-aform { display: grid; gap: 1.25rem; max-width: 44rem; }
-.aw-arow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
-@media (min-width: 40rem) { .aw-arow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.aw-afield { display: flex; flex-direction: column; min-width: 0; }
-.aw-alabel { display: block; margin: 0 0 0.45rem; font-size: 0.9375rem; font-weight: 600; line-height: 1.3; color: var(--aw-ink); }
-.aw-aopt { margin-left: 0.35em; font-weight: 400; color: var(--aw-muted); }
-.aw-ainput {
+/* =========================================================================
+   Section bar · where am I, where can I go, and Apply is always one tap away.
+   A translucent layer that content scrolls under.
+   ========================================================================= */
+.aw-jd .aw-bar {
+  position: sticky; top: var(--aw-header); z-index: 30;
+  height: var(--aw-bar); margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  display: flex; align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 1px 0 var(--aw-pale);
+}
+.aw-jd .aw-bar__inner { width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.aw-jd .aw-bar__title { min-width: 0; font-size: 0.9375rem; line-height: 1.3; letter-spacing: -0.006em; font-weight: 650; color: var(--aw-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw-jd .aw-bar__links { display: none; }
+.aw-jd .aw-bar__link {
+  display: block; padding: 0.5rem 0.85rem; border-radius: 999px;
+  font-size: 0.9375rem; line-height: 1.2; letter-spacing: -0.006em; font-weight: 500; color: var(--aw-muted);
+  transition: color var(--aw-dur-fast) var(--aw-ease), background-color var(--aw-dur-fast) var(--aw-ease), transform 0.1s ease-out;
+}
+.aw-jd .aw-bar__link:hover, .aw-jd .aw-bar__link:focus { color: var(--aw-ink); background: var(--aw-tint); }
+.aw-jd .aw-bar__link:active { transform: scale(0.97); }
+.aw-jd .aw-bar__link[aria-current="true"] { color: var(--aw-ink); background: var(--aw-pale); }
+.aw-jd .aw-bar__apply { flex: none; min-height: 2.75rem; padding: 0.5em 1.25em; font-size: 0.9375rem; }
+.aw-jd .aw-bar__long { display: none; }
+@media (min-width: 40rem) {
+  .aw-jd .aw-bar__short { display: none; }
+  .aw-jd .aw-bar__long { display: inline; }
+}
+@media (min-width: 62rem) {
+  .aw-jd .aw-bar__title { display: none; }
+  .aw-jd .aw-bar__links { display: flex; flex-wrap: nowrap; gap: 0.125rem; margin-left: -0.85rem; }
+}
+
+/* =========================================================================
+   Chapters · title on the left, content on the right; on wide screens the
+   title stays put while its chapter scrolls past.
+   ========================================================================= */
+.aw-jd .aw-chapter { padding: clamp(3rem, 6.5vw, 6.5rem) 0; background: var(--aw-white); }
+.aw-jd .aw-chapter + .aw-chapter { padding-top: 0; }
+.aw-jd .aw-chapter__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(2rem, 5vw, 3.5rem); }
+@media (min-width: 62rem) {
+  .aw-jd .aw-chapter__grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(3rem, 6vw, 6rem); align-items: start; }
+}
+/* only when the window is tall enough to hold the title and its photograph under the header and the bar */
+@media (min-width: 62rem) and (min-height: 52rem) {
+  .aw-jd .aw-chapter__head { position: sticky; top: calc(var(--aw-header) + var(--aw-bar) + 2rem); }
+}
+.aw-jd .aw-chapter__title {
+  font-size: clamp(1.75rem, 1rem + 1.7vw, 2.5rem);
+  line-height: 1.1; letter-spacing: -0.024em; font-weight: 650; color: var(--aw-ink);
+  overflow-wrap: break-word;
+}
+.aw-jd .aw-chapter__lead {
+  margin-top: 1.25rem; max-width: 26rem;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.45; letter-spacing: -0.006em; color: var(--aw-muted);
+}
+.aw-jd .aw-statement {
+  max-width: 30em;
+  font-size: clamp(1.5rem, 1rem + 1.7vw, 2.5rem);
+  line-height: 1.2; letter-spacing: -0.022em; font-weight: 600; color: var(--aw-ink);
+}
+.aw-jd .aw-text {
+  margin-top: 1.25rem; max-width: 36rem;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.55; color: var(--aw-body);
+}
+.aw-jd .aw-statement + .aw-text { margin-top: 1.5rem; }
+.aw-jd .aw-text + .aw-text { margin-top: 1em; }
+
+/* a photograph under a chapter title (benefits, relocation): it stays in view with the title while the list scrolls */
+.aw-jd .aw-chapter__head .aw-photo { --ratio: 4 / 3; margin-top: clamp(1.5rem, 3vw, 2rem); }
+@media (min-width: 62rem) {
+  .aw-jd .aw-chapter__head .aw-photo { --ratio: 4 / 5; }
+}
+
+/* =========================================================================
+   2. WHY THIS JOB IS RIGHT FOR YOU · rows, not cards
+   ========================================================================= */
+.aw-jd .aw-perks { margin-top: clamp(1.5rem, 3vw, 2.25rem); border-bottom: 1px solid var(--aw-pale); }
+.aw-jd .aw-perk { display: flex; align-items: flex-start; gap: 1rem; padding: clamp(1.125rem, 2.2vw, 1.5rem) 0; border-top: 1px solid var(--aw-pale); }
+.aw-jd .aw-perk__mark { flex: none; display: block; width: 1.5rem; height: 1.5rem; margin-top: 0.15rem; color: var(--aw-navy); }
+.aw-jd .aw-perk__text { display: block; min-width: 0; }
+.aw-jd .aw-perk__lead {
+  display: block; max-width: 30rem;
+  font-size: clamp(1.1875rem, 1.1rem + 0.45vw, 1.4375rem);
+  line-height: 1.3; letter-spacing: -0.016em; font-weight: 600; color: var(--aw-ink);
+}
+.aw-jd .aw-perk__detail { display: block; max-width: 30rem; margin-top: 0.35rem; font-size: 1.0625rem; line-height: 1.5; color: var(--aw-body); }
+
+/* =========================================================================
+   3. CONTRACT · three steps on one line; the line draws itself once, on arrival
+   ========================================================================= */
+.aw-jd .aw-path { position: relative; display: grid; gap: 2.25rem; }
+.aw-jd .aw-path::before, .aw-jd .aw-path::after {
+  content: ""; position: absolute; left: 0.4375rem; top: 0.5rem; bottom: 0.5rem; width: 2px; border-radius: 2px;
+}
+.aw-jd .aw-path::before { background: var(--aw-pale); }
+.aw-jd .aw-path::after { background: var(--aw-navy); transform-origin: top center; transition: transform 1.4s var(--aw-ease); }
+.aw-jd .aw-step { position: relative; min-width: 0; padding-left: 2.5rem; }
+.aw-jd .aw-step::before {
+  content: ""; position: absolute; left: 0; top: 0.35rem; width: 0.9375rem; height: 0.9375rem; border-radius: 50%;
+  background: var(--aw-navy); box-shadow: 0 0 0 0.375rem var(--aw-white);
+}
+.aw-jd .aw-step__label { display: block; font-size: 0.9375rem; line-height: 1.4; color: var(--aw-muted); }
+.aw-jd .aw-step__big {
+  display: block; margin-top: 0.15rem;
+  font-size: clamp(1.75rem, 1rem + 1.8vw, 2.5rem); line-height: 1.08; letter-spacing: -0.03em; font-weight: 700; color: var(--aw-ink);
+}
+.aw-jd .aw-step__text { display: block; max-width: 17rem; margin-top: 0.5rem; font-size: 1.0625rem; line-height: 1.45; color: var(--aw-body); }
+@media (min-width: 40rem) {
+  .aw-jd .aw-path { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+  .aw-jd .aw-path::before, .aw-jd .aw-path::after { left: 0.4375rem; right: 0.4375rem; top: 0.4375rem; bottom: auto; width: auto; height: 2px; }
+  .aw-jd .aw-path::after { transform-origin: left center; }
+  .aw-jd .aw-step { padding: 2.5rem 0 0; }
+  .aw-jd .aw-step::before { top: 0; }
+}
+/* waiting for the line to arrive (JS only sets this when motion is allowed) */
+.aw-jd .aw-path[data-reveal="idle"]::after { transform: scaleY(0); }
+@media (min-width: 40rem) { .aw-jd .aw-path[data-reveal="idle"]::after { transform: scaleX(0); } }
+.aw-jd .aw-path .aw-step { transition: opacity 0.7s var(--aw-ease), transform 0.7s var(--aw-ease); }
+.aw-jd .aw-path[data-reveal="idle"] .aw-step { opacity: 0; transform: translateY(0.75rem); }
+.aw-jd .aw-path .aw-step:nth-child(2) { transition-delay: 0.25s; }
+.aw-jd .aw-path .aw-step:nth-child(3) { transition-delay: 0.5s; }
+
+/* =========================================================================
+   4. SCHEDULE AND HOLIDAYS · two numbers in headline size
+   ========================================================================= */
+.aw-jd .aw-facts { border-bottom: 1px solid var(--aw-pale); }
+.aw-jd .aw-fact { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.25rem 1.5rem; padding: clamp(1rem, 2vw, 1.5rem) 0; border-top: 1px solid var(--aw-pale); }
+@media (min-width: 40rem) {
+  .aw-jd .aw-fact { grid-template-columns: minmax(7rem, auto) minmax(0, 1fr); align-items: baseline; column-gap: clamp(1.5rem, 3vw, 2.5rem); }
+}
+.aw-jd .aw-fact__n {
+  font-size: clamp(3.25rem, 1.5rem + 7.5vw, 6.75rem);
+  line-height: 1; letter-spacing: -0.04em; font-weight: 700; color: var(--aw-ink);
+  font-variant-numeric: tabular-nums;
+}
+.aw-jd .aw-fact__l { max-width: 28rem; font-size: clamp(1.1875rem, 1rem + 0.7vw, 1.5rem); line-height: 1.3; letter-spacing: -0.014em; font-weight: 500; color: var(--aw-body); }
+.aw-jd .aw-fact__l small { display: block; margin-top: 0.4rem; font-size: 1.0625rem; line-height: 1.5; letter-spacing: normal; font-weight: 400; color: var(--aw-muted); }
+
+/* =========================================================================
+   5. PAY · the headline number first, then how it adds up. Navy panel, like the hub.
+   ========================================================================= */
+.aw-jd .aw-paycard {
+  --aw-focus: #fff;
+  padding: clamp(1.5rem, 4vw, 3rem); border-radius: var(--aw-radius); background: var(--aw-navy); color: #fff;
+}
+.aw-jd .aw-total__cap { font-size: 1.0625rem; line-height: 1.4; color: rgba(255, 255, 255, 0.86); }
+.aw-jd .aw-total__n {
+  display: grid; margin-top: 0.35rem; color: #fff;
+  font-size: clamp(3.25rem, 1.5rem + 7.5vw, 6.5rem);
+  line-height: 1; letter-spacing: -0.04em; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+/* the visible number and an invisible copy of the final value share one cell,
+   so the width never changes while the number counts up */
+.aw-jd .aw-total__n > [aria-hidden="true"] { grid-area: 1 / 1; transition: opacity var(--aw-dur-fast) var(--aw-ease); }
+.aw-jd .aw-paycard[data-count="idle"] .aw-total__n > [aria-hidden="true"] { opacity: 0; }
+.aw-jd .aw-total__n::after { content: attr(data-final); grid-area: 1 / 1; visibility: hidden; }
+.aw-jd .aw-ledger { margin-top: clamp(1.5rem, 3vw, 2.25rem); }
+.aw-jd .aw-ledger__row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem 1.5rem;
+  padding: 1rem 0; border-top: 1px solid rgba(255, 255, 255, 0.24);
+}
+.aw-jd .aw-ledger__t { min-width: 0; font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.35; color: #fff; }
+.aw-jd .aw-ledger__hint { display: block; margin-top: 0.15rem; font-size: 0.9375rem; line-height: 1.4; color: rgba(255, 255, 255, 0.86); }
+.aw-jd .aw-ledger__v { flex: none; font-size: clamp(1.1875rem, 1.05rem + 0.5vw, 1.4375rem); line-height: 1.3; letter-spacing: -0.012em; font-weight: 600; font-variant-numeric: tabular-nums; color: #fff; }
+.aw-jd .aw-note-ref { margin-left: 0.15em; font-size: 0.7em; line-height: 0; vertical-align: super; font-weight: 600; }
+
+.aw-jd .aw-notes { margin-top: 1.5rem; max-width: 40rem; }
+.aw-jd .aw-note { display: flex; gap: 0.6rem; font-size: 0.9375rem; line-height: 1.5; color: var(--aw-muted); }
+.aw-jd .aw-note + .aw-note { margin-top: 0.4rem; }
+.aw-jd .aw-note__n { flex: none; min-width: 1.75em; font-weight: 600; color: var(--aw-ink); }
+.aw-jd .aw-note__t { min-width: 0; }
+.aw-jd .aw-callout {
+  margin-top: 1.5rem; max-width: 36rem; padding: 1.125rem 1.25rem; border-radius: 1rem; background: var(--aw-tint);
+  font-size: 1.0625rem; line-height: 1.5; color: var(--aw-body);
+}
+.aw-jd .aw-callout strong { font-weight: 650; color: var(--aw-ink); }
+
+/* =========================================================================
+   7. LISBON · a mosaic of the city, the answer to "is it a good place to live?", then the questions
+   ========================================================================= */
+.aw-jd .aw-highlights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; margin-top: clamp(1.75rem, 3.5vw, 2.5rem); }
+.aw-jd .aw-highlight {
+  padding: 0.9rem 0; border-top: 1px solid var(--aw-pale);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); line-height: 1.3; letter-spacing: -0.012em; font-weight: 600; color: var(--aw-ink);
+}
+.aw-jd .aw-mosaic { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: clamp(2.5rem, 5vw, 4rem); }
+.aw-jd .aw-mosaic .aw-photo { --ratio: 4 / 5; }
+.aw-jd .aw-mosaic .aw-photo:first-child { --ratio: 16 / 10; grid-column: 1 / -1; }
+@media (min-width: 40rem) {
+  .aw-jd .aw-mosaic { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: clamp(11rem, 24vw, 21rem); gap: 1rem; }
+  .aw-jd .aw-mosaic .aw-photo, .aw-jd .aw-mosaic .aw-photo:first-child { aspect-ratio: auto; height: 100%; }
+  .aw-jd .aw-mosaic .aw-photo:nth-child(1) { grid-column: span 7; }
+  .aw-jd .aw-mosaic .aw-photo:nth-child(2) { grid-column: span 5; }
+  .aw-jd .aw-mosaic .aw-photo:nth-child(3) { grid-column: span 4; }
+  .aw-jd .aw-mosaic .aw-photo:nth-child(4) { grid-column: span 3; }
+  .aw-jd .aw-mosaic .aw-photo:nth-child(5) { grid-column: span 5; }
+}
+@media (min-width: 62rem) {
+  .aw-jd .aw-highlights { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 1.5rem; }
+}
+
+/* questions: native disclosure, a plus that turns into a minus */
+.aw-jd .aw-faq { border-bottom: 1px solid var(--aw-pale); }
+.aw-jd .aw-qa { border-top: 1px solid var(--aw-pale); }
+.aw-jd .aw-qa__q {
+  display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+  min-height: 4rem; padding: 1.125rem 0; cursor: pointer; list-style: none;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: opacity 0.1s ease-out;
+}
+.aw-jd .aw-qa__q::-webkit-details-marker { display: none; }
+.aw-jd .aw-qa__q:active { opacity: 0.7; }
+.aw-jd .aw-qa__text {
+  min-width: 0; font-size: clamp(1.1875rem, 1.1rem + 0.45vw, 1.4375rem);
+  line-height: 1.3; letter-spacing: -0.016em; font-weight: 600; color: var(--aw-ink);
+}
+.aw-jd .aw-qa__icon { position: relative; flex: none; width: 1.5rem; height: 1.5rem; }
+.aw-jd .aw-qa__icon::before, .aw-jd .aw-qa__icon::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 0.875rem; height: 2px; margin: -1px 0 0 -0.4375rem; border-radius: 2px; background: var(--aw-navy);
+  transition: transform var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-jd .aw-qa__icon::after { transform: rotate(90deg); }
+.aw-jd .aw-qa[open] .aw-qa__icon::after { transform: rotate(0deg); }
+.aw-jd .aw-qa__a { max-width: 38rem; padding: 0 3rem 1.75rem 0; font-size: clamp(1.0625rem, 1rem + 0.2vw, 1.125rem); line-height: 1.6; color: var(--aw-body); }
+@supports (interpolate-size: allow-keywords) and selector(::details-content) {
+  .aw-jd .aw-qa { interpolate-size: allow-keywords; }
+  .aw-jd .aw-qa::details-content { block-size: 0; overflow: clip; transition: block-size 0.45s var(--aw-ease), content-visibility 0.45s allow-discrete; }
+  .aw-jd .aw-qa[open]::details-content { block-size: auto; }
+}
+
+/* =========================================================================
+   8. WHY MOVING TO PORTUGAL · one wide photograph, four reasons as a definition list
+   ========================================================================= */
+.aw-jd .aw-wide { --ratio: 4 / 3; }
+@media (min-width: 40rem) { .aw-jd .aw-wide { --ratio: 16 / 9; } }
+.aw-jd .aw-reasons { margin-top: clamp(2rem, 4vw, 3rem); border-bottom: 1px solid var(--aw-pale); }
+.aw-jd .aw-reason { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem 2rem; padding: clamp(1.25rem, 2.5vw, 1.75rem) 0; border-top: 1px solid var(--aw-pale); }
+@media (min-width: 40rem) { .aw-jd .aw-reason { grid-template-columns: 11rem minmax(0, 1fr); } }
+.aw-jd .aw-reason__title { font-size: clamp(1.1875rem, 1.1rem + 0.45vw, 1.4375rem); line-height: 1.3; letter-spacing: -0.016em; font-weight: 600; color: var(--aw-ink); }
+.aw-jd .aw-reason__text { max-width: 34rem; font-size: 1.0625rem; line-height: 1.55; color: var(--aw-body); }
+.aw-jd .aw-reason__text + .aw-reason__text { margin-top: 0.75em; }
+
+/* =========================================================================
+   9. CONFIRM YOUR APPLICATION · eight questions as hairline-separated rows, like the rest of the page.
+   Native controls (select, radio, checkbox) so the phone's own pickers and keyboards are used.
+   Follow-up questions slide open under their parent and are inert while closed.
+   ========================================================================= */
+.aw-jd .aw-confirm__fine { margin-top: 1.25rem; max-width: 22rem; font-size: 0.9375rem; line-height: 1.5; color: var(--aw-muted); }
+.aw-jd .aw-form { display: block; margin: 0; padding: 0; border: 0; }
+.aw-jd .aw-form__nojs { padding: 1rem 1.25rem; border-radius: 1rem; background: var(--aw-tint); font-size: 1.0625rem; line-height: 1.5; color: var(--aw-body); }
+
+.aw-jd .aw-q {
+  display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); column-gap: 0.5rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem) 0; border-top: 1px solid var(--aw-pale);
+  scroll-margin-top: calc(var(--aw-header) + var(--aw-bar) + 1rem);
+}
+.aw-jd .aw-q__n { padding-top: 0.2rem; font-size: 0.9375rem; line-height: 1.5; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--aw-muted); }
+.aw-jd .aw-q__main { min-width: 0; }
+.aw-jd .aw-q__label {
+  display: block; max-width: 34rem;
+  font-size: clamp(1.1875rem, 1.1rem + 0.45vw, 1.4375rem); line-height: 1.3; letter-spacing: -0.016em; font-weight: 600; color: var(--aw-ink);
+}
+.aw-jd .aw-q__label--sub { font-size: 1.125rem; letter-spacing: -0.012em; }
+.aw-jd .aw-q__hint { margin-top: 0.4rem; max-width: 34rem; font-size: 1rem; line-height: 1.5; color: var(--aw-muted); }
+.aw-jd .aw-q__ctl { margin-top: 1rem; }
+.aw-jd .aw-q__err { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 0.75rem; max-width: 34rem; font-size: 0.9375rem; line-height: 1.4; font-weight: 600; color: var(--aw-error); }
+.aw-jd .aw-q__err[hidden] { display: none; }
+.aw-jd .aw-q__err svg { flex: none; width: 1.125rem; height: 1.125rem; margin-top: 0.1rem; }
+
+/* drop-down and text area */
+.aw-jd .aw-select, .aw-jd .aw-textarea {
+  display: block; width: 100%; max-width: 28rem; margin: 0; padding: 0.75rem 1rem;
+  border: 1.5px solid var(--aw-mid); border-radius: 0.875rem; box-shadow: none; background-color: #fff;
+  font: inherit; font-size: 1.0625rem; line-height: 1.35; letter-spacing: normal; font-weight: 400; color: var(--aw-ink);
+  transition: border-color var(--aw-dur-fast) var(--aw-ease), background-color var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-jd .aw-select {
+  min-height: 3.25rem; padding-right: 3rem; cursor: pointer;
+  -webkit-appearance: none; appearance: none; background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25rem 1.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23193360' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9.5l6 6 6-6'/%3E%3C/svg%3E");
+}
+.aw-jd .aw-select:invalid { color: var(--aw-muted); }
+.aw-jd .aw-select option { color: var(--aw-ink); }
+.aw-jd .aw-textarea { max-width: 34rem; min-height: 6.5rem; resize: vertical; }
+.aw-jd .aw-select:hover, .aw-jd .aw-textarea:hover { border-color: var(--aw-navy); }
+.aw-jd .aw-select:focus, .aw-jd .aw-textarea:focus { border-color: var(--aw-navy); background-color: #fff; color: var(--aw-ink); }
+.aw-jd .aw-select:invalid:focus { color: var(--aw-muted); }
+.aw-jd .aw-select[aria-invalid="true"], .aw-jd .aw-textarea[aria-invalid="true"] { border-color: var(--aw-error); }
+.aw-jd .aw-q__notelabel { display: block; margin-bottom: 0.5rem; font-size: 1rem; line-height: 1.4; font-weight: 600; color: var(--aw-ink); }
+.aw-jd .aw-q__notelabel span { margin-left: 0.35em; font-weight: 400; color: var(--aw-muted); }
+
+/* yes / no: two pills. The real radio buttons sit invisibly over them, so taps and arrow keys behave natively. */
+.aw-jd .aw-seg { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.aw-jd .aw-opt { position: relative; display: block; margin: 0; line-height: 1.2; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.aw-jd .aw-form .aw-opt input[type="radio"] {
+  position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; border-radius: 999px;
+  background: transparent; box-shadow: none; opacity: 0; cursor: pointer;
+}
+.aw-jd .aw-opt__face {
+  display: flex; align-items: center; justify-content: center; min-width: 7rem; min-height: 3.25rem; padding: 0.75rem 1.5rem; border-radius: 999px;
+  background: #fff; box-shadow: inset 0 0 0 1.5px var(--aw-mid);
+  font-size: 1.0625rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; color: var(--aw-ink);
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease), color var(--aw-dur-fast) var(--aw-ease), box-shadow var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-jd .aw-opt:hover .aw-opt__face { background: var(--aw-tint); box-shadow: inset 0 0 0 1.5px var(--aw-navy); }
+.aw-jd .aw-opt:active .aw-opt__face { transform: scale(0.97); }
+.aw-jd .aw-form .aw-opt input[type="radio"]:checked + .aw-opt__face { background: var(--aw-navy); color: #fff; box-shadow: inset 0 0 0 1.5px var(--aw-navy); }
+.aw-jd .aw-form .aw-opt input[type="radio"]:focus-visible + .aw-opt__face { outline: 3px solid var(--aw-focus); outline-offset: 3px; }
+.aw-jd .aw-seg[data-invalid] .aw-opt__face { box-shadow: inset 0 0 0 2px var(--aw-error); }
+
+/* several answers: full-width rows with the platform's own check box, in the brand blue */
+.aw-jd .aw-checks { max-width: 34rem; border-bottom: 1px solid var(--aw-pale); }
+.aw-jd .aw-check {
+  display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; margin: 0; padding: 0.7rem 0; border-top: 1px solid var(--aw-pale);
+  line-height: 1.35; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: opacity 0.1s ease-out;
+}
+.aw-jd .aw-check:active { opacity: 0.7; }
+.aw-jd .aw-form .aw-check input[type="checkbox"] {
+  flex: none; -webkit-appearance: checkbox; appearance: auto; width: 1.5rem; height: 1.5rem; margin: 0; padding: 0; border: 0; border-radius: 0.3rem;
+  background: transparent; box-shadow: none; accent-color: var(--aw-navy); cursor: pointer;
+}
+.aw-jd .aw-form .aw-check input[type="checkbox"]:focus-visible { outline: 3px solid var(--aw-focus); outline-offset: 3px; }
+.aw-jd .aw-check__text { min-width: 0; font-size: 1.0625rem; line-height: 1.35; letter-spacing: -0.006em; font-weight: 500; color: var(--aw-ink); }
+.aw-jd .aw-checks[data-invalid] { border-bottom-color: var(--aw-error); }
+.aw-jd .aw-checks[data-invalid] .aw-check:first-child { border-top-color: var(--aw-error); }
+
+/* follow-up questions: slide open under their parent (0fr -> 1fr), inert while closed */
+.aw-jd .aw-more { display: block; }
+.aw-jd[data-js] .aw-more { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.45s var(--aw-ease), opacity 0.3s var(--aw-ease); }
+.aw-jd[data-js] .aw-more[data-open] { grid-template-rows: 1fr; opacity: 1; }
+.aw-jd .aw-more__in { min-height: 0; overflow: hidden; margin: 0 -8px; padding: 0 8px; }
+.aw-jd .aw-more__pad { margin-top: 1.5rem; padding: 0.25rem 0 8px 1.25rem; border-left: 2px solid var(--aw-pale); }
+
+/* send */
+.aw-jd .aw-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.aw-jd .aw-form__submit { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; padding-top: clamp(1.5rem, 3vw, 2.25rem); border-top: 1px solid var(--aw-pale); }
+.aw-jd .aw-form__submit .aw-btn { width: 100%; }
+@media (min-width: 40rem) { .aw-jd .aw-form__submit .aw-btn { width: auto; min-width: 17rem; } }
+.aw-jd .aw-btn[aria-busy="true"], .aw-jd .aw-btn[aria-busy="true"]:hover, .aw-jd .aw-btn[aria-busy="true"]:focus { background: var(--aw-muted); color: #fff; cursor: progress; }
+.aw-jd .aw-form__status { min-height: 1.5rem; max-width: 34rem; font-size: 1rem; line-height: 1.5; font-weight: 600; color: var(--aw-ink); }
+.aw-jd .aw-form__status:empty { min-height: 0; }
+.aw-jd .aw-form__status[data-kind="error"] { color: var(--aw-error); }
+.aw-jd .aw-form__fine { max-width: 34rem; font-size: 0.9375rem; line-height: 1.5; color: var(--aw-muted); }
+
+/* after it is sent */
+.aw-jd .aw-done { padding: clamp(1.75rem, 4vw, 3rem); border-radius: var(--aw-radius); background: var(--aw-tint); scroll-margin-top: calc(var(--aw-header) + var(--aw-bar) + 1rem); }
+.aw-jd .aw-done[hidden] { display: none; }
+.aw-jd .aw-done__mark { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--aw-navy); color: #fff; }
+.aw-jd .aw-done__mark svg { width: 1.75rem; height: 1.75rem; }
+.aw-jd .aw-done__title { margin-top: 1.25rem; font-size: clamp(1.75rem, 1rem + 1.7vw, 2.5rem); line-height: 1.1; letter-spacing: -0.024em; font-weight: 650; color: var(--aw-ink); }
+.aw-jd .aw-done__title:focus, .aw-jd .aw-done__title:focus-visible { outline: none; }
+.aw-jd .aw-done__text { margin-top: 0.9rem; max-width: 32rem; font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.55; color: var(--aw-body); }
+.aw-jd .aw-done__note { margin-top: 1rem; font-size: 0.9375rem; line-height: 1.4; font-weight: 600; color: var(--aw-muted); }
+.aw-jd .aw-done__note[hidden] { display: none; }
+
+/* =========================================================================
+   10. NEXT STEP · the blue comes back to close, as on About Us
+   ========================================================================= */
+.aw-jd .aw-close {
+  --aw-focus: #fff;
+  padding: calc(var(--aw-seam) + clamp(1rem, 3vw, 2.5rem)) 0 clamp(2.5rem, 5vw, 4rem);
+  background: linear-gradient(180deg, #fff 0, var(--aw-navy) var(--aw-seam), var(--aw-navy) 100%);
+  color: #fff;
+}
+/* the Atlean "A": large, translucent, cropped on the right, behind the text. Decoration only. */
+.aw-jd .aw-close { position: relative; isolation: isolate; overflow: hidden; }
+.aw-jd .aw-close__mark {
+  position: absolute; z-index: -1; right: 0; bottom: 0; width: auto; max-width: none;
+  height: min(78%, 34rem, 40vw);
+  transform: translateX(22%);
+  filter: brightness(0) invert(1); opacity: 0.08;
+  pointer-events: none; user-select: none; -webkit-user-select: none;
+}
+@media (max-width: 43.6875rem) {
+  .aw-jd .aw-close__mark { top: 22%; bottom: auto; height: 34%; transform: translateX(32%); }
+}
+.aw-jd .aw-close__title {
+  max-width: 14em; color: #fff;
+  font-size: clamp(2.25rem, 0.8rem + 5vw, 4.5rem);
+  line-height: 1.04; letter-spacing: -0.035em; font-weight: 700;
+}
+.aw-jd .aw-close__text { margin-top: 1.5rem; max-width: 36rem; font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.55; color: rgba(255, 255, 255, 0.92); }
+.aw-jd .aw-close__fine { margin-top: clamp(2.5rem, 5vw, 4rem); font-size: 1.0625rem; line-height: 1.5; color: rgba(255, 255, 255, 0.92); }
+.aw-jd .aw-social { display: flex; flex-wrap: wrap; gap: 0.625rem; margin-top: 0.875rem; }
+.aw-jd .aw-chip {
+  display: inline-flex; align-items: center; gap: 0.55rem; min-height: 2.75rem; padding: 0.6rem 1.1rem 0.6rem 0.9rem; border-radius: 999px;
+  font-size: 0.9375rem; font-weight: 600; line-height: 1.2; color: #fff; background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.5);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color var(--aw-dur-fast) var(--aw-ease), color var(--aw-dur-fast) var(--aw-ease);
+}
+.aw-jd .aw-chip:hover, .aw-jd .aw-chip:focus { color: var(--aw-navy); background: #fff; }
+.aw-jd .aw-chip:active { transform: scale(0.97); }
+.aw-jd .aw-credits {
+  margin-top: clamp(2.5rem, 5vw, 4rem); padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 0.875rem; line-height: 1.6; color: rgba(255, 255, 255, 0.86);
+}
+.aw-jd .aw-credits a, .aw-jd .aw-credits a:hover, .aw-jd .aw-credits a:focus {
+  color: #fff; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.5); text-decoration-thickness: 1px; text-underline-offset: 0.2em;
+}
+.aw-jd .aw-credits a:hover, .aw-jd .aw-credits a:focus { text-decoration-color: currentColor; }
+
+/* links inside body copy */
+.aw-jd a.aw-link, .aw-jd a.aw-link:hover, .aw-jd a.aw-link:focus {
+  color: var(--aw-ink); overflow-wrap: anywhere;
+  text-decoration: underline; text-decoration-color: var(--aw-mid); text-decoration-thickness: 1px; text-underline-offset: 0.2em;
+}
+.aw-jd a.aw-link:hover, .aw-jd a.aw-link:focus { text-decoration-color: currentColor; text-decoration-thickness: 2px; }
+
+/* =========================================================================
+   User preferences
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  /* no slides or springs: colour and opacity changes only */
+  .aw-jd .aw-btn:active, .aw-jd .aw-chip:active, .aw-jd .aw-bar__link:active,
+  .aw-jd .aw-opt:active .aw-opt__face, .aw-jd .aw-video__btn:active .aw-video__disc { transform: none; }
+  .aw-jd .aw-qa__q:active, .aw-jd .aw-check:active { opacity: 1; }
+  .aw-jd .aw-btn, .aw-jd .aw-chip, .aw-jd .aw-bar__link, .aw-jd .aw-qa__icon::before, .aw-jd .aw-qa__icon::after,
+  .aw-jd .aw-path::after, .aw-jd .aw-path .aw-step, .aw-jd .aw-total__n > [aria-hidden="true"],
+  .aw-jd .aw-video__disc, .aw-jd .aw-select, .aw-jd .aw-textarea, .aw-jd .aw-opt__face, .aw-jd .aw-check,
+  .aw-jd[data-js] .aw-more { transition: none; }
+  .aw-jd .aw-qa::details-content { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .aw-jd .aw-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .aw-jd .aw-video__disc { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .aw-jd .aw-close__mark { display: none; }
+}
+@media (prefers-contrast: more) {
+  .aw-jd { --aw-muted: #34496f; }
+  .aw-jd .aw-close__mark { display: none; }
+  .aw-jd .aw-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 1px 0 var(--aw-navy); }
+  .aw-jd .aw-keyfacts, .aw-jd .aw-key, .aw-jd .aw-perks, .aw-jd .aw-perk, .aw-jd .aw-facts, .aw-jd .aw-fact, .aw-jd .aw-highlight,
+  .aw-jd .aw-faq, .aw-jd .aw-qa, .aw-jd .aw-reasons, .aw-jd .aw-reason, .aw-jd .aw-q, .aw-jd .aw-checks, .aw-jd .aw-check, .aw-jd .aw-form__submit { border-color: var(--aw-mid); }
+  .aw-jd .aw-btn--ghost { box-shadow: inset 0 0 0 2px var(--aw-navy); }
+  .aw-jd .aw-select, .aw-jd .aw-textarea { border-color: var(--aw-navy); }
+  .aw-jd .aw-opt__face { box-shadow: inset 0 0 0 2px var(--aw-navy); }
+  .aw-jd .aw-more__pad { border-left-color: var(--aw-mid); }
+  .aw-jd .aw-path::before { background: var(--aw-mid); }
+  .aw-jd .aw-callout { box-shadow: inset 0 0 0 1px var(--aw-mid); }
+  .aw-jd .aw-ledger__row, .aw-jd .aw-credits { border-color: #fff; }
+  .aw-jd .aw-close__text, .aw-jd .aw-close__fine, .aw-jd .aw-credits, .aw-jd .aw-total__cap, .aw-jd .aw-ledger__hint { color: #fff; }
+  .aw-jd .aw-chip { box-shadow: inset 0 0 0 2px #fff; }
+}
+@media (forced-colors: active) {
+  .aw-jd .aw-close__mark { display: none; }
+  .aw-jd .aw-keyfacts, .aw-jd .aw-key, .aw-jd .aw-perks, .aw-jd .aw-perk, .aw-jd .aw-facts, .aw-jd .aw-fact, .aw-jd .aw-highlight,
+  .aw-jd .aw-faq, .aw-jd .aw-qa, .aw-jd .aw-reasons, .aw-jd .aw-reason, .aw-jd .aw-ledger__row, .aw-jd .aw-credits { border-color: CanvasText; }
+  .aw-jd .aw-bar { box-shadow: none; border-bottom: 1px solid CanvasText; }
+  .aw-jd .aw-btn, .aw-jd .aw-chip { border: 1.5px solid ButtonText; }
+  .aw-jd .aw-btn--solid { background: ButtonFace; color: ButtonText; }
+  .aw-jd .aw-select, .aw-jd .aw-textarea { border: 1.5px solid FieldText; background-color: Field; color: FieldText; -webkit-appearance: auto; appearance: auto; background-image: none; }
+  .aw-jd .aw-opt__face { border: 1.5px solid ButtonText; box-shadow: none; background: ButtonFace; color: ButtonText; }
+  .aw-jd .aw-form .aw-opt input[type="radio"]:checked + .aw-opt__face { background: Highlight; color: HighlightText; border-color: Highlight; }
+  .aw-jd .aw-q, .aw-jd .aw-checks, .aw-jd .aw-check, .aw-jd .aw-form__submit, .aw-jd .aw-more__pad { border-color: CanvasText; }
+  .aw-jd .aw-video__disc { border: 2px solid ButtonText; background: ButtonFace; color: ButtonText; box-shadow: none; }
+  .aw-jd .aw-video__stage { border: 1px solid CanvasText; }
+  .aw-jd .aw-done { border: 1px solid CanvasText; }
+  .aw-jd .aw-done__mark { border: 2px solid CanvasText; background: Canvas; color: CanvasText; }
+  .aw-jd .aw-path::before, .aw-jd .aw-path::after, .aw-jd .aw-step::before, .aw-jd .aw-qa__icon::before, .aw-jd .aw-qa__icon::after { background: CanvasText; }
+  .aw-jd .aw-paycard, .aw-jd .aw-close { border: 1px solid CanvasText; background: Canvas; color: CanvasText; }
+  .aw-jd .aw-close { background: Canvas; }
+}
+
+/* print: no blue, no sticky bar; every question is open (the script opens them), rows don't split */
+@media print {
+  .aw-jd .aw-bar, .aw-jd .aw-video, .aw-jd .aw-confirm { display: none; }
+  .aw-jd .aw-intro { padding-top: 0; }
+  .aw-jd .aw-intro__grid { grid-template-columns: minmax(0, 1fr); }
+  .aw-jd .aw-paycard, .aw-jd .aw-close { background: none; color: var(--aw-ink); border: 1px solid var(--aw-ink); }
+  .aw-jd .aw-close { padding: 1.5rem 0 0; border: 0; }
+  .aw-jd .aw-total__n, .aw-jd .aw-total__cap, .aw-jd .aw-ledger__t, .aw-jd .aw-ledger__v, .aw-jd .aw-ledger__hint,
+  .aw-jd .aw-close__title, .aw-jd .aw-close__text, .aw-jd .aw-close__fine, .aw-jd .aw-credits, .aw-jd .aw-credits a { color: var(--aw-ink); }
+  .aw-jd .aw-ledger__row, .aw-jd .aw-credits { border-color: var(--aw-pale); }
+  .aw-jd .aw-chapter__grid { grid-template-columns: minmax(0, 1fr); }
+  .aw-jd .aw-chapter__head { position: static; }
+  .aw-jd .aw-perk, .aw-jd .aw-reason, .aw-jd .aw-qa, .aw-jd .aw-ledger__row, .aw-jd .aw-photo { break-inside: avoid; }
+  .aw-jd .aw-chip { color: var(--aw-ink); box-shadow: inset 0 0 0 1px var(--aw-ink); }
+  .aw-jd .aw-close__mark { display: none; }
+}
+
+/* =========================================================================
+   PART 2 · the website's job pages
+   ========================================================================= */
+.aw-jd { --aw-header: 0px; }   /* the site header scrolls away, so the section bar sticks to the top */
+.aw-jd .aw-intro__grid--solo { grid-template-columns: minmax(0, 1fr); }
+.aw-jd .aw-intro__grid--solo .aw-intro__sub { max-width: 46rem; }
+.aw-jd .aw-intro__photo { --ratio: 4 / 3; }
+@media (min-width: 62rem) { .aw-jd .aw-intro__photo { --ratio: 5 / 4; } }
+.aw-jd .aw-keyfacts--4 { }
+@media (min-width: 62rem) {
+  .aw-jd .aw-keyfacts--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .aw-jd .aw-keyfacts--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* the description from Atleable, as reading text */
+.aw-jd .aw-prose {
+  max-width: 40rem;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.65; color: var(--aw-body);
+  overflow-wrap: break-word;
+}
+.aw-jd .aw-prose > * + * { margin-top: 1em; }
+.aw-jd .aw-prose :where(h2, h3, h4) { margin-top: 1.8em; font-size: 1.2em; line-height: 1.3; letter-spacing: -0.015em; font-weight: 650; color: var(--aw-ink); }
+.aw-jd .aw-prose :where(h2, h3, h4):first-child { margin-top: 0; }
+.aw-jd .aw-prose strong, .aw-jd .aw-prose b { font-weight: 650; color: var(--aw-ink); }
+.aw-jd .aw-prose ul, .aw-jd .aw-prose ol { padding-left: 1.25em; }
+.aw-jd .aw-prose ul { list-style: disc; }
+.aw-jd .aw-prose ol { list-style: decimal; }
+.aw-jd .aw-prose li + li { margin-top: 0.4em; }
+.aw-jd .aw-prose li::marker { color: var(--aw-mid); }
+.aw-jd .aw-prose a { color: var(--aw-ink); text-decoration: underline; text-decoration-color: var(--aw-light); text-underline-offset: 0.2em; }
+.aw-jd .aw-prose a:hover { text-decoration-color: currentColor; }
+.aw-jd .aw-prose img { display: inline; max-width: 1.2em; vertical-align: -0.2em; }   /* emoji images copied from older posts */
+.aw-jd .aw-prose hr { margin: 2em 0; border: 0; border-top: 1px solid var(--aw-pale); }
+
+/* closing: the link to all jobs */
+.aw-jd .aw-close__fine .aw-close__link { color: #fff; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.5); text-underline-offset: 0.2em; }
+.aw-jd .aw-close__fine .aw-close__link:hover { text-decoration-color: #fff; }
+.aw-jd .aw-done__text .aw-link { font-weight: 600; text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* the apply form */
+.aw-jd .aw-confirm__fine { margin-top: 1.25rem; max-width: 26rem; font-size: 0.9375rem; line-height: 1.5; color: var(--aw-muted); }
+.aw-jd .aw-confirm__fine a, .aw-jd .aw-acheck a { color: var(--aw-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 0.2em; }
+
+.aw-jd .aw-aform { display: grid; gap: 1.25rem; max-width: 44rem; }
+.aw-jd .aw-arow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+@media (min-width: 40rem) { .aw-jd .aw-arow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.aw-jd .aw-afield { display: flex; flex-direction: column; min-width: 0; }
+.aw-jd .aw-alabel { display: block; margin: 0 0 0.45rem; font-size: 0.9375rem; font-weight: 600; line-height: 1.3; color: var(--aw-ink); }
+.aw-jd .aw-aopt { margin-left: 0.35em; font-weight: 400; color: var(--aw-muted); }
+.aw-jd .aw-ainput {
   display: block; width: 100%; min-height: 3.25rem; margin: 0; padding: 0.8rem 1rem;
   font: inherit; font-size: 1rem; line-height: 1.4; color: var(--aw-ink);
   background-color: var(--aw-tint); border: 1px solid var(--aw-mid); border-radius: 0.875rem;
   -webkit-appearance: none; appearance: none;
   transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
 }
-.aw-ainput:hover { border-color: var(--aw-navy); }
-.aw-ainput:focus { outline: none; background-color: #fff; border-color: var(--aw-navy); box-shadow: 0 0 0 3px rgba(25, 51, 96, 0.28); }
-.aw-ainput[aria-invalid="true"] { border-color: var(--aw-error); }
-.aw-aphone { display: grid; grid-template-columns: 7.25rem minmax(0, 1fr); gap: 0.5rem; }
-.aw-aphone__code {
+.aw-jd .aw-ainput:hover { border-color: var(--aw-navy); }
+.aw-jd .aw-ainput:focus { outline: none; background-color: #fff; border-color: var(--aw-navy); box-shadow: 0 0 0 3px rgba(25, 51, 96, 0.28); }
+.aw-jd .aw-ainput[aria-invalid="true"] { border-color: var(--aw-error); }
+.aw-jd .aw-aphone { display: grid; grid-template-columns: 7.25rem minmax(0, 1fr); gap: 0.5rem; }
+.aw-jd .aw-aphone__code {
   padding-right: 2rem; cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23193360' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 0.6rem center; background-size: 1.1rem;
 }
 
-.aw-afile {
+.aw-jd .aw-afile {
   position: relative; display: flex; align-items: center; gap: 1rem; min-height: 3.25rem; padding: 0.5rem;
   border: 1px dashed var(--aw-mid); border-radius: 0.875rem; background: var(--aw-tint); cursor: pointer;
 }
-.aw-afile:hover { border-color: var(--aw-navy); }
-.aw-afile input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-.aw-afile:focus-within { border-style: solid; border-color: var(--aw-navy); box-shadow: 0 0 0 3px rgba(25, 51, 96, 0.28); }
-.aw-afile:has(input[aria-invalid="true"]) { border-color: var(--aw-error); }
-.aw-afile__btn {
+.aw-jd .aw-afile:hover { border-color: var(--aw-navy); }
+.aw-jd .aw-afile input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.aw-jd .aw-afile:focus-within { border-style: solid; border-color: var(--aw-navy); box-shadow: 0 0 0 3px rgba(25, 51, 96, 0.28); }
+.aw-jd .aw-afile:has(input[aria-invalid="true"]) { border-color: var(--aw-error); }
+.aw-jd .aw-afile__btn {
   flex: none; padding: 0.55rem 1rem; border-radius: 999px;
   font-size: 0.9375rem; font-weight: 600; color: #fff; background: var(--aw-navy);
 }
-.aw-afile__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9375rem; color: var(--aw-body); }
-.aw-ahint { margin: 0.4rem 0 0; font-size: 0.875rem; color: var(--aw-muted); }
+.aw-jd .aw-afile__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9375rem; color: var(--aw-body); }
+.aw-jd .aw-ahint { margin: 0.4rem 0 0; font-size: 0.875rem; color: var(--aw-muted); }
 
-.aw-acheck { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.9375rem; line-height: 1.5; cursor: pointer; }
-.aw-acheck input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0.15rem 0 0; accent-color: var(--aw-navy); }
-.aw-acheck a { color: var(--aw-navy); font-weight: 600; }
+.aw-jd .aw-acheck { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.9375rem; line-height: 1.5; cursor: pointer; }
+.aw-jd .aw-acheck input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0.15rem 0 0; accent-color: var(--aw-navy); }
+.aw-jd .aw-acheck a { color: var(--aw-navy); font-weight: 600; }
 
-.aw-aerr { margin: 0.4rem 0 0; font-size: 0.9rem; font-weight: 600; line-height: 1.35; color: var(--aw-error); }
-.aw-aerr:empty { display: none; }
-.aw-ahp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
-.aw-aform .cf-turnstile { min-height: 65px; max-width: 100%; }
-.aw-asubmit { justify-self: start; min-width: 14rem; border: 0; cursor: pointer; font-family: inherit; }
-.aw-asubmit:disabled { opacity: 0.6; cursor: progress; }
-@media (max-width: 39.9375rem) { .aw-asubmit { justify-self: stretch; } }
-.aw-astatus { margin: 0; font-weight: 600; }
-.aw-astatus:empty { display: none; }
-.aw-astatus--error { color: var(--aw-error); }
+.aw-jd .aw-aerr { margin: 0.4rem 0 0; font-size: 0.9rem; font-weight: 600; line-height: 1.35; color: var(--aw-error); }
+.aw-jd .aw-aerr:empty { display: none; }
+.aw-jd .aw-ahp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.aw-jd .aw-jd .aw-aform .cf-turnstile { min-height: 65px; max-width: 100%; }
+.aw-jd .aw-asubmit { justify-self: start; min-width: 14rem; border: 0; cursor: pointer; font-family: inherit; }
+.aw-jd .aw-asubmit:disabled { opacity: 0.6; cursor: progress; }
+@media (max-width: 39.9375rem) { .aw-jd .aw-asubmit { justify-self: stretch; } }
+.aw-jd .aw-astatus { margin: 0; font-weight: 600; }
+.aw-jd .aw-astatus:empty { display: none; }
+.aw-jd .aw-astatus--error { color: var(--aw-error); }
 
-.aw-athanks { padding: 2rem; border-radius: 1.25rem; background: var(--aw-tint); outline: none; }
-.aw-athanks h3 { margin: 0 0 0.5rem; font-size: 1.375rem; letter-spacing: -0.015em; color: var(--aw-success); }
-.aw-athanks p { margin: 0; line-height: 1.55; }
-.aw-athanks a { color: var(--aw-navy); font-weight: 600; }
-
-@media print {
-  .aw-apply, .aw-job__cta, .aw-job__facts-btn { display: none !important; }
-  .aw-job__chips li { color: var(--aw-ink); box-shadow: inset 0 0 0 1px var(--aw-ink); }
-}

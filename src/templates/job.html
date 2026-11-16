@@ -4,13 +4,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{job.title}} — Atlean World</title>
+<title>{{job.title}} · {{job.place}} — Atlean World</title>
 <meta name="description" content="{{job.summary}}">
 <link rel="icon" href="{{root}}favicon.ico" sizes="any">
 <link rel="icon" href="{{root}}media/brand/favicon-32.png" type="image/png">
 <link rel="apple-touch-icon" href="{{root}}media/brand/apple-touch-icon.png">
 <link rel="stylesheet" href="{{root}}assets/css/site.css">
-<link rel="stylesheet" href="{{root}}assets/css/talks.css">
 <link rel="stylesheet" href="{{root}}assets/css/job.css">
 <script src="{{root}}assets/js/site.js" defer></script>
 <script src="{{root}}assets/js/job.js" defer></script>
@@ -21,51 +20,78 @@
 
 <!-- include:header -->
 
-<!-- One job. build.py fills the {{job.*}} fields for every published job. -->
-<main class="aw-talks aw-job" id="content">
+<!-- One job, in the layout of Ena's job description reference.
+     build.py fills the {{job.*}} fields for every published job: the chapters
+     come from the job's description in Atleable, split at its headings. -->
+<main class="aw-jd" id="content">
 
-  <header class="aw-thero aw-thero--job">
-    <img class="aw-thero__mark" src="{{root}}media/brand/favicon.png" alt="" aria-hidden="true">
-    <div class="aw-thero__inner">
-      <a class="aw-post__back" href="{{root}}open-jobs/">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-        Open jobs
-      </a>
-      {{job.kicker_html}}
-      <h1 class="aw-thero__title">{{job.title}}</h1>
-      <ul class="aw-job__chips">{{job.chips_html}}</ul>
-      <div class="aw-job__cta"><a class="aw-tbtn aw-tbtn--light" href="#apply">Apply now</a></div>
+  <!-- 1. OPENING: the title, a photo of the city, the key facts -->
+  <header class="aw-intro" id="top" aria-labelledby="aw-jd-title">
+    <div class="aw-wrap">
+      <div class="aw-intro__grid{{job.grid_class}}">
+        <div class="aw-intro__text">
+          <p class="aw-intro__kicker">{{job.kicker}}</p>
+          <h1 class="aw-intro__title" id="aw-jd-title">{{job.title}}</h1>
+          <p class="aw-intro__sub">{{job.summary}}</p>
+          <div class="aw-intro__cta">
+            <a class="aw-btn aw-btn--solid" href="#apply">Apply now</a>
+            <a class="aw-btn aw-btn--ghost" href="#{{job.first_id}}">Read about the role</a>
+          </div>
+        </div>
+{{job.photo_html}}
+      </div>
+
+      <dl class="aw-keyfacts{{job.facts_class}}">{{job.facts_html}}</dl>
     </div>
   </header>
 
-  <div class="aw-twrap aw-job__grid">
-    <article class="aw-prose aw-job__desc">
-{{job.description}}
-    </article>
+  <!-- section bar: sticks to the top while you read -->
+  <nav class="aw-bar" aria-label="On this page">
+    <div class="aw-bar__inner">
+      <p class="aw-bar__title">{{job.title}}</p>
+      <ul class="aw-bar__links" role="list">{{job.bar_html}}</ul>
+      <a class="aw-btn aw-btn--solid aw-bar__apply" href="#apply"><span class="aw-bar__short">Apply</span><span class="aw-bar__long">Apply now</span></a>
+    </div>
+  </nav>
 
-    <aside class="aw-job__facts" aria-labelledby="aw-facts-title">
-      <h2 class="aw-job__facts-title" id="aw-facts-title">The job at a glance</h2>
-      <dl>{{job.facts_html}}</dl>
-      <a class="aw-tbtn aw-job__facts-btn" href="#apply">Apply now</a>
-    </aside>
-  </div>
+  <!-- 2. THE JOB: one chapter per part of the description -->
+{{job.chapters_html}}
 
-  <section class="aw-apply" id="apply" aria-labelledby="aw-apply-title">
-    <div class="aw-twrap aw-apply__inner">
-      <div class="aw-apply__text">
-        <h2 class="aw-apply__title" id="aw-apply-title">Apply for this job</h2>
-        <p>Send us your CV and a recruiter will get back to you. It takes about two minutes.</p>
+  <!-- 3. APPLY: the CV goes straight to this job's pipeline in Atleable -->
+  <section class="aw-chapter aw-confirm" id="apply" aria-labelledby="aw-apply-title">
+    <div class="aw-wrap aw-chapter__grid">
+      <div class="aw-chapter__head">
+        <h2 class="aw-chapter__title" id="aw-apply-title">Apply for this job</h2>
+        <p class="aw-chapter__lead">Send us your CV and a recruiter will get back to you. It takes about two minutes.</p>
+        <p class="aw-confirm__fine">We use your details only to consider you for jobs. Read our <a href="{{root}}privacy-policy/">Privacy Policy</a>.</p>
       </div>
+      <div class="aw-chapter__body">
 {{job.apply_html}}
+      </div>
     </div>
   </section>
 
-  <section class="aw-tcta" aria-labelledby="aw-tcta-title">
-    <div class="aw-twrap aw-tcta__inner">
-      <h2 class="aw-tcta__title" id="aw-tcta-title">Not quite the right fit?</h2>
-      <div class="aw-tcta__btns">
-        <a class="aw-tbtn" href="{{root}}open-jobs/">See all open jobs</a>
-      </div>
+  <!-- 4. CLOSING: the blue comes back -->
+  <section class="aw-close" id="close" aria-labelledby="aw-close-title">
+    <img class="aw-close__mark" src="{{root}}media/brand/favicon.png" alt="" aria-hidden="true">
+    <div class="aw-wrap">
+      <h2 class="aw-close__title" id="aw-close-title">Your next job, without boundaries.</h2>
+      <p class="aw-close__text">Atlean World is an international HR SaaS consultant company that aims to promote multicultural environments as the new reality. We specialize in multilingual markets, making the candidate’s recruitment journey smoother and more enjoyable.</p>
+      <p class="aw-close__text">Make it happen!</p>
+
+      <p class="aw-close__fine">Not the right job? <a class="aw-close__link" href="{{root}}open-jobs/">See all open jobs</a>, or follow @atleanworld to hear about new ones first.</p>
+      <ul class="aw-social" role="list">
+        <li><a class="aw-chip" href="https://www.instagram.com/atleanworld/" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Instagram</a></li>
+        <li><a class="aw-chip" href="https://www.linkedin.com/company/atleanworld" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn</a></li>
+        <li><a class="aw-chip" href="https://www.tiktok.com/@atleanworld" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82c-1.06-.92-1.7-2.27-1.7-3.82h-3.34v14.4a2.6 2.6 0 1 1-2.6-2.6c.24 0 .48.03.7.1V10.5a5.94 5.94 0 0 0-.7-.04A5.96 5.96 0 1 0 15 16.02V9.35c1.31.94 2.92 1.5 4.66 1.5V7.5c-1.16 0-2.24-.36-3.06-.98a5.9 5.9 0 0 1 0-.7z"/></svg>
+          TikTok</a></li>
+      </ul>
+      {{job.credits_html}}
     </div>
   </section>
 

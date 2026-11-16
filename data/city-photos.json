@@ -1,0 +1,69 @@
+{
+  "_about": "Unsplash photos for the job pages, per city (free Unsplash License; hotlinked from images.unsplash.com as Unsplash asks). Each job page uses a different starting photo, so two jobs in the same city look different. To add a photo: open it on unsplash.com, copy the image address (https://images.unsplash.com/photo-...), and add an entry with the photographer and the photo page. 'countries' lists which cities' photos a job with only a country (or a small town) uses.",
+  "cities": {
+    "lisbon": [
+      {"src": "https://images.unsplash.com/photo-1536663815808-535e2280d2c2", "alt": "Orange-roofed houses of Lisbon above the Tagus river", "by": "Tom Byrom", "page": "https://unsplash.com/photos/landscape-photography-of-orange-roof-houses-near-body-of-water-hgFX7SydvFk"},
+      {"src": "https://images.unsplash.com/photo-1585208798174-6cedd86e019a", "alt": "A yellow tram travelling down a street lined with historic buildings in Lisbon", "by": "Aayush Gupta", "page": "https://unsplash.com/photos/yellow-tram-in-historic-lisbon-street-ljhCEaHYWJ8"},
+      {"src": "https://images.unsplash.com/photo-1741275167680-f581d0fd73c0", "alt": "The Rua Augusta Arch on Praça do Comércio in Lisbon", "by": "Kristijan Arsov", "page": "https://unsplash.com/photos/the-arch-of-triumph-in-lisbon-stands-tall-O0RZKr3MexU"},
+      {"src": "https://images.unsplash.com/photo-1558102400-72da9fdbecae", "alt": "The 25 de Abril Bridge over the Tagus river in Lisbon, with a sailing boat on the water", "by": "Svetlana Gumerova", "page": "https://unsplash.com/photos/25-de-abril-bridge-in-lisbon-gOLCAOuc7iA"},
+      {"src": "https://images.unsplash.com/photo-1748279944004-f1d733dc711b", "alt": "Lisbon’s skyline glowing at sunset", "by": "Aleksandr Zaitsev", "page": "https://unsplash.com/photos/lisbons-skyline-glows-under-a-beautiful-sunset-zEFfW3kXQR8"},
+      {"src": "https://images.unsplash.com/photo-1755524317710-ea777c80d8f7", "alt": "Two people climbing a narrow, shaded street with steps beneath Lisbon’s tiled roofs", "by": "Maria Lupan", "page": "https://unsplash.com/photos/people-walk-down-a-steep-cobblestone-street-in-lisbon-HX5BatMBPeg"},
+      {"src": "https://images.unsplash.com/photo-1524928872228-9b284de342b3", "alt": "Aerial view of Lisbon’s red-roofed houses beside the dome of a Gothic cathedral", "by": "Denise Jans", "page": "https://unsplash.com/photos/aerial-photography-of-town-with-red-roof-houses-near-dome-gothic-cathedral-dz9wtvxLcSM"},
+      {"src": "https://images.unsplash.com/photo-1747997421995-5ff402818f31", "alt": "A surfer about to enter the water at sunset at Carcavelos beach, near Lisbon", "by": "Ivo Sousa Martins", "page": "https://unsplash.com/photos/a-surfer-enjoys-the-calm-ocean-at-sunset-RgiULeeLUMQ"},
+      {"src": "https://images.unsplash.com/photo-1778489926637-4a96d4574f65", "alt": "Close-up of ornate blue Portuguese azulejo tiles", "by": "Bernd Dittrich", "page": "https://unsplash.com/photos/close-up-of-ornate-portuguese-azulejo-tiles-with-floral-patterns-hxMIqYp4zXg"}
+    ],
+    "porto": [
+      {"src": "https://images.unsplash.com/photo-1765918232627-36f14c234775", "alt": "The Dom Luís I bridge over the Douro river in Porto", "by": "Pascal Bernardon", "page": "https://unsplash.com/photos/dom-luis-i-bridge-over-the-douro-river-in-porto-ifwpVvpk3oY"},
+      {"src": "https://images.unsplash.com/photo-1555881400-89d5a9c86668", "alt": "A boat on the Douro river near a bridge in Porto", "by": "Nick Karvounis", "page": "https://unsplash.com/photos/boat-sailing-near-bridge-6ckFibuzLAU"},
+      {"src": "https://images.unsplash.com/photo-1769425945256-eef8f170a72c", "alt": "Porto’s riverside and the Dom Luís I bridge over the Douro", "by": "Sergei Gussev", "page": "https://unsplash.com/photos/dom-luis-i-bridge-over-the-douro-river-in-porto-ctzIomWD1TE"},
+      {"src": "https://images.unsplash.com/photo-1507709364617-197d5065ed49", "alt": "Porto’s houses climbing the hillside above the Douro river", "by": "Kelvyn Ornettte Sol Marte", "page": "https://unsplash.com/photos/mrYnmSZMUHM"},
+      {"src": "https://images.unsplash.com/photo-1631910801074-dfd9d95b8b7f", "alt": "The Dom Luís I bridge in Porto under a blue sky", "by": "Gustavo Soares", "page": "https://unsplash.com/photos/kScSQfXvCxA"}
+    ],
+    "braga": [
+      {"src": "https://images.unsplash.com/photo-1568977337691-8e2c4baa094b", "alt": "The baroque stairway of Bom Jesus do Monte in Braga", "by": "Angela Compagnone", "page": "https://unsplash.com/photos/yU7ZLo_3Yz4"},
+      {"src": "https://images.unsplash.com/photo-1553476685-5274087fb6ad", "alt": "Trees beside the stairs of Bom Jesus do Monte in Braga", "by": "João Pedro", "page": "https://unsplash.com/photos/tree-near-stairs-at-daytiem-k0GM9_NMS14"}
+    ],
+    "athens": [
+      {"src": "https://images.unsplash.com/photo-1630933868840-1e9299a5b8dd", "alt": "Monastiraki Square in Athens with the Acropolis above it", "by": "Andrea Leopardi", "page": "https://unsplash.com/photos/monastiraki-square-and-acropolis-in-athens-a-lN07O_ZNI"},
+      {"src": "https://images.unsplash.com/photo-1754069620359-dc54d97591ce", "alt": "The Acropolis of Athens seen from above", "by": "Mert Kahveci", "page": "https://unsplash.com/photos/the-acropolis-of-athens-is-seen-from-above-D9ckTTI6nGI"},
+      {"src": "https://images.unsplash.com/photo-1557686583-560ae7baba2a", "alt": "Athens at golden hour, with the Parthenon on the Acropolis", "by": "Stavrialena Gontzou", "page": "https://unsplash.com/photos/citycape-during-golden-hour-G8OyUvtAxUQ"},
+      {"src": "https://images.unsplash.com/photo-1583656696771-2afded31a36c", "alt": "An evening crowd in Monastiraki, Athens", "by": "David Tip", "page": "https://unsplash.com/photos/u7XtES2Syv8"},
+      {"src": "https://images.unsplash.com/photo-1747571443369-e21d1e2ce292", "alt": "The Acropolis of Athens glowing at sunset", "by": "Simone Dinoia", "page": "https://unsplash.com/photos/the-acropolis-of-athens-glows-at-sunset-qC845k80siY"}
+    ],
+    "thessaloniki": [
+      {"src": "https://images.unsplash.com/photo-1665252142538-d3515d9ef62e", "alt": "The White Tower of Thessaloniki behind trees and stone walls", "by": "Josef Maxson", "page": "https://unsplash.com/photos/a-stone-castle-with-trees-and-people-with-white-tower-of-thessaloniki-in-the-background-LMThkOqsix0"},
+      {"src": "https://images.unsplash.com/photo-1551189654-7a5ac7381f8b", "alt": "Thessaloniki seen from the old town", "by": "Dragos Gontariu", "page": "https://unsplash.com/photos/E9UVjNNmYS8"},
+      {"src": "https://images.unsplash.com/photo-1776596630260-32a2981a2fc9", "alt": "Teal umbrellas lit up at night over a street in Thessaloniki", "by": "Panagiotis Falcos", "page": "https://unsplash.com/photos/many-teal-umbrellas-hanging-from-above-at-night-tPvR4c1UgnU"},
+      {"src": "https://images.unsplash.com/photo-1705058849670-ba7c89fa9760", "alt": "People walking through a market street in Thessaloniki", "by": "Teo Zac", "page": "https://unsplash.com/photos/a-group-of-people-walking-around-a-market-QSAWHTg8bHU"}
+    ],
+    "sofia": [
+      {"src": "https://images.unsplash.com/photo-1695798599366-fb041c027148", "alt": "St. Alexander Nevsky Cathedral in Sofia", "by": "Serenay Bayar", "page": "https://unsplash.com/photos/a-large-white-building-with-a-green-roof-jesSVCefpCs"},
+      {"src": "https://images.unsplash.com/photo-1561391316-5975659156ac", "alt": "Sofia’s rooftops with the mountains behind", "by": "Liah Martens", "page": "https://unsplash.com/photos/high-angle-photography-of-city-during-daytime-WT3O3MqgZso"},
+      {"src": "https://images.unsplash.com/photo-1594803294810-c860e5d29e07", "alt": "The green and gold domes of Alexander Nevsky Cathedral in Sofia", "by": "Ivan Nedelchev", "page": "https://unsplash.com/photos/OENyTAi9dg0"},
+      {"src": "https://images.unsplash.com/photo-1547629872-05cec7e4ff6c", "alt": "Alexander Nevsky Cathedral in Sofia lit up at night", "by": "Antonio Gabola", "page": "https://unsplash.com/photos/lighted-cathedral-at-night-by-the-road-3QDDixL_FRo"},
+      {"src": "https://images.unsplash.com/photo-1633604782181-e25c5b5238b7", "alt": "Sofia’s city centre on a winter evening", "by": "Angel Balashev", "page": "https://unsplash.com/photos/a-large-white-building-sitting-on-the-side-of-a-road-jXU7uIkwUxg"},
+      {"src": "https://images.unsplash.com/photo-1499464757855-e279cb528d2b", "alt": "Sofia’s skyline under a cloudy sunset", "by": "Vasko Hristov", "page": "https://unsplash.com/photos/aerial-photo-of-city-under-cloudy-sky-at-sunset-MWftGFI46eU"}
+    ],
+    "gdansk": [
+      {"src": "https://images.unsplash.com/photo-1574060603747-421196bce3f4", "alt": "Gdańsk’s old town reflected in the Motława river", "by": "Krzysztof Kowalik", "page": "https://unsplash.com/photos/reflections-of-buildings-on-body-of-water-BqsiBCl4rmE"},
+      {"src": "https://images.unsplash.com/photo-1572942560575-2e3142767543", "alt": "The rooftops of Gdańsk’s old town by the river", "by": "Eduardo Casajús Gorostiaga", "page": "https://unsplash.com/photos/qC2aGhNQOSc"},
+      {"src": "https://images.unsplash.com/photo-1665592571618-086ae93fd8f4", "alt": "Historic buildings along the water in Gdańsk", "by": "Darya Tryfanava", "page": "https://unsplash.com/photos/zjvC9FD0d1E"}
+    ],
+    "limassol": [
+      {"src": "https://images.unsplash.com/photo-1655829795205-ca8b326ad4b1", "alt": "Limassol’s seafront and city", "by": "Alexander Chupikov", "page": "https://unsplash.com/photos/a-city-with-a-body-of-water-in-the-background-7Hk2337hQlo"},
+      {"src": "https://images.unsplash.com/photo-1695571803211-1031c05b255e", "alt": "The pier at Limassol Marina", "by": "Tony Todesky", "page": "https://unsplash.com/photos/a-pier-with-a-light-pole-and-a-light-pole-next-to-a-body-of-water-bZqCMyP-AIs"}
+    ],
+    "paris": [
+      {"src": "https://images.unsplash.com/photo-1757435755027-91a1a4beb6c5", "alt": "The Eiffel Tower at the end of a Paris street", "by": "Lens by Benji", "page": "https://unsplash.com/photos/eiffel-tower-visible-down-a-street-in-paris-EDh8WsR1sOY"},
+      {"src": "https://images.unsplash.com/photo-1684485442894-8516e58643b1", "alt": "The Eiffel Tower rising above the rooftops of Paris", "by": "Tim Marshall", "page": "https://unsplash.com/photos/the-eiffel-tower-towering-over-the-city-of-paris-OkmFP8m59_g"}
+    ]
+  },
+  "countries": {
+    "portugal": ["lisbon", "porto", "braga"],
+    "greece": ["athens", "thessaloniki"],
+    "bulgaria": ["sofia"],
+    "poland": ["gdansk"],
+    "cyprus": ["limassol"],
+    "france": ["paris"]
+  }
+}
