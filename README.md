@@ -24,6 +24,8 @@ In a page, `<!-- include:header -->` and `<!-- include:footer -->` insert the sh
 
 Atlean Talks: build.py reads the posts from `data/posts.json` (later from Supabase), writes the list into `/atleantalks/` and one page per post at its old WordPress address.
 
+Page not found: `src/pages/404.html` (styles in `assets/css/404.css`). GitHub Pages shows it for any address that doesn't exist; `static/.htaccess` does the same on an Apache/cPanel host. Because it can appear at any depth, its links are absolute, built from `SITE_BASE` (set automatically by the Pages workflow).
+
 Preview locally: `python build.py --serve`, then open http://localhost:8000.
 
 Every push to `main` builds the site and publishes it to GitHub Pages (`.github/workflows/pages.yml`).

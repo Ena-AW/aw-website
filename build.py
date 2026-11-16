@@ -19,6 +19,10 @@ writes there). Each published post becomes /<slug>/ from src/templates/post.html
 the same URLs the WordPress site used, and <!-- talks:list --> /
 <!-- talks:categories --> in a page are replaced by the list of posts.
 
+404.html is served by the host for every address that doesn't exist, at any
+depth, so its {{root}} is the absolute site path from SITE_BASE ("/" by default;
+the Pages workflow sets "/aw-website/" for the preview).
+
 Usage:  python build.py           build once
         python build.py --serve   build, then serve on http://localhost:8000
 """
@@ -39,6 +43,8 @@ ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 OUT = ROOT / "_site"
 STATIC_DIRS = ["assets", "data", "media"]
+_base = (os.environ.get("SITE_BASE") or "").strip("/")
+SITE_BASE = f"/{_base}/" if _base else "/"   # where the site lives on its host
 
 NAV_RE = re.compile(r"\A\s*<!--\s*nav:\s*([\w-]+)\s*-->\s*\n?")
 INCLUDE_RE = re.compile(r"<!--\s*include:([\w-]+)\s*-->")
@@ -245,6 +251,8 @@ def build():
     for rel, html, meta in sources:
         depth = len(rel.parts) - 1
         root = "../" * depth or "./"
+        if rel == Path("404.html"):   # served at any depth: links must be absolute
+            root = SITE_BASE
         nav = None
         m = NAV_RE.match(html)
         if m:
@@ -297,6 +305,20 @@ if __name__ == "__main__":
         import functools
         import http.server
 
-        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(OUT))
+        class Handler(http.server.SimpleHTTPRequestHandler):
+            def send_error(self, code, message=None, explain=None):
+                # like the live host: unknown addresses get the site's 404 page
+                page = OUT / "404.html"
+                if code != 404 or not page.exists():
+                    return super().send_error(code, message, explain)
+                body = page.read_bytes()
+                self.send_response(404)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                if self.command != "HEAD":
+                    self.wfile.write(body)
+
+        handler = functools.partial(Handler, directory=str(OUT))
         print("Serving on http://localhost:8000  (Ctrl+C to stop)")
         http.server.ThreadingHTTPServer(("", 8000), handler).serve_forever()

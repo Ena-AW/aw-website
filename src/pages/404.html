@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-root="{{root}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found — Atlean World</title>
+<meta name="description" content="This page doesn't exist or has moved.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="{{root}}favicon.ico" sizes="any">
+<link rel="icon" href="{{root}}media/brand/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="{{root}}media/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="{{root}}assets/css/site.css">
+<link rel="stylesheet" href="{{root}}assets/css/404.css">
+<script src="{{root}}assets/js/site.js" defer></script>
+</head>
+<body>
+
+<!-- include:header -->
+
+<!-- This page is served for every address that doesn't exist, at any depth,
+     so build.py fills {{root}} with the absolute site path ("/" on the live
+     site, "/aw-website/" on the GitHub Pages preview) instead of "../". -->
+<main class="aw-404" id="content">
+
+  <!-- ========================================================================
+       1. BANNER · the same navy banner as the other pages, with the Atlean "A"
+       ======================================================================== -->
+  <section class="aw-404__hero" aria-labelledby="aw-404-title">
+    <img class="aw-404__mark" src="{{root}}media/brand/favicon.png" alt="" aria-hidden="true">
+    <div class="aw-404__inner">
+      <p class="aw-404__code" aria-hidden="true">404</p>
+      <h1 class="aw-404__title" id="aw-404-title">This page took another route.</h1>
+      <p class="aw-404__sub">The page you're looking for doesn't exist or has moved. Let's get you back on track.</p>
+      <p class="aw-404__path" hidden>No page at <code></code></p>
+      <div class="aw-404__actions">
+        <a class="aw-404__btn aw-404__btn--light" href="{{root}}">Back to home</a>
+        <a class="aw-404__btn aw-404__btn--ghost" href="{{root}}open-jobs/">See open jobs</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       2. WHERE TO NEXT · the main sections of the site
+       ======================================================================== -->
+  <section class="aw-404__next" aria-labelledby="aw-404-next">
+    <div class="aw-404__wrap">
+      <h2 class="aw-404__next-title" id="aw-404-next">Where would you like to go?</h2>
+      <ul class="aw-404__links">
+        <li><a href="{{root}}open-jobs/">
+          <span class="aw-404__link-title">Jobs</span>
+          <span class="aw-404__link-text">Open roles for multilingual professionals across Europe.</span>
+          <span class="aw-404__arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a href="{{root}}atleantalks/">
+          <span class="aw-404__link-title">Atlean Talks</span>
+          <span class="aw-404__link-text">Career guides, tips and career journeys from our team.</span>
+          <span class="aw-404__arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a href="{{root}}employer-solutions/">
+          <span class="aw-404__link-title">Employer Solutions</span>
+          <span class="aw-404__link-text">Hire multilingual talent with us.</span>
+          <span class="aw-404__arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a href="{{root}}about-us/">
+          <span class="aw-404__link-title">About us</span>
+          <span class="aw-404__link-text">20+ languages, 20+ countries, and the team behind them.</span>
+          <span class="aw-404__arrow" aria-hidden="true">→</span>
+        </a></li>
+      </ul>
+      <p class="aw-404__help">Think something's broken? Write to <a href="mailto:careers@atleanworld.com">careers@atleanworld.com</a>.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Show the address that wasn't found (as text, never as HTML).
+  (function () {
+    var box = document.querySelector('.aw-404__path');
+    var path = location.pathname;
+    try { path = decodeURIComponent(path); } catch (e) {}
+    if (!box || path === '/' || path.length > 120) return;
+    box.querySelector('code').textContent = path;
+    box.hidden = false;
+  })();
+</script>
+
+<!-- include:footer -->
+
+</body>
+</html>
