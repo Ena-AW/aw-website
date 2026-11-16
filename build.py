@@ -347,6 +347,69 @@ def job_chapters(description):
     return merged
 
 
+PHOTOS_FILE = ROOT / "data" / "city-photos.json"
+PHOTO_WIDTHS = (480, 800, 1200, 1600, 2000)
+
+
+def place_key(text):
+    """"Gdańsk" -> "gdansk", "Viana do Castelo" -> "viana-do-castelo"."""
+    import unicodedata
+    text = unicodedata.normalize("NFKD", (text or "").replace("ł", "l").replace("Ł", "L"))
+    return re.sub(r"[^a-z0-9]+", "-", text.encode("ascii", "ignore").decode().lower()).strip("-")
+
+
+def load_city_photos():
+    return json.loads(PHOTOS_FILE.read_text(encoding="utf-8")) if PHOTOS_FILE.exists() else {"cities": {}, "countries": {}}
+
+
+def photo_pool(job, library):
+    """The Unsplash photos a job can use: its city's, or else every photo of its
+    country's cities (for "Portugal" or a small town). Returns (key, photos)."""
+    loc = job.get("location") or ""
+    city = place_key(loc.split(",")[0]) if "," in loc else ""
+    if city in library["cities"]:
+        return city, library["cities"][city]
+    country = place_key(job.get("country") or loc.split(",")[-1])
+    photos = [p for c in library["countries"].get(country, []) for p in library["cities"].get(c, [])]
+    return country, photos
+
+
+def assign_photos(jobs):
+    """Jobs in the same city start at different photos: they take turns, oldest
+    job first, so two Lisbon jobs never open on the same picture (until a city
+    has more jobs than photos)."""
+    library = load_city_photos()
+    groups = {}
+    for job in sorted(jobs, key=lambda j: (str(j.get("created_at") or ""), j["slug"])):
+        key, pool = photo_pool(job, library)
+        if not pool:
+            job["_photos"] = []
+            continue
+        n = groups.get(key, 0)
+        groups[key] = n + 1
+        job["_photos"] = pool[n % len(pool):] + pool[:n % len(pool)]
+
+
+def photo_img(photo, sizes, eager=False):
+    base = photo["src"].split("?")[0] + "?auto=format&fit=crop&q=75&ixlib=rb-4.1.0&w="
+    srcset = ", ".join(f"{base}{w} {w}w" for w in PHOTO_WIDTHS)
+    loading = 'loading="eager" fetchpriority="high"' if eager else 'loading="lazy"'
+    return (f'<img class="aw-photo__img" src="{esc(base)}1600" srcset="{esc(srcset)}" sizes="{sizes}" '
+            f'width="1600" height="1067" alt="{esc(photo.get("alt", ""))}" {loading} decoding="async">')
+
+
+def photo_credits(photos):
+    seen, links = set(), []
+    for p in photos:
+        if p.get("by") and p["page"] not in seen:
+            seen.add(p["page"])
+            links.append(f'<a href="{esc(p["page"])}" target="_blank" rel="noopener noreferrer">{esc(p["by"])}</a>')
+    if not links:
+        return ""
+    names = links[0] if len(links) == 1 else ", ".join(links[:-1]) + " and " + links[-1]
+    return f'<p class="aw-credits">Photography from Unsplash: {names}.</p>'
+
+
 def job_summary(job, loc):
     """One or two sentences for the opening: the first paragraph that is about
     the job, not the company blurb."""
@@ -376,11 +439,20 @@ def render_job(template, job):
             cid += "-2"
         used.add(cid)
         ids.append(cid)
+    photos = job.get("_photos") or []
+    used_photos = photos[:1]
+
+    def chapter_photo(i):
+        # chapters after the first get the next photos of the city, under their title
+        if i == 0 or i >= len(photos) or i > 2:
+            return ""
+        used_photos.append(photos[i])
+        return f'\n        <figure class="aw-photo">{photo_img(photos[i], "(min-width: 992px) 30vw, 92vw")}</figure>'
     chapters_html = "\n".join(
         f'''  <section class="aw-chapter" id="{ids[i]}" aria-labelledby="aw-{ids[i]}-title">
     <div class="aw-wrap aw-chapter__grid">
       <div class="aw-chapter__head">
-        <h2 class="aw-chapter__title" id="aw-{ids[i]}-title">{esc(t)}</h2>
+        <h2 class="aw-chapter__title" id="aw-{ids[i]}-title">{esc(t)}</h2>{chapter_photo(i)}
       </div>
       <div class="aw-chapter__body aw-prose">
 {lazy_images(h)}
@@ -390,10 +462,13 @@ def render_job(template, job):
     bar_html = "".join(f'<li><a class="aw-bar__link" href="#{ids[i]}">{esc(bar_label(t, i))}</a></li>' for i, (t, _) in enumerate(chapters))
     country = (job.get("country") or loc.split(",")[-1]).strip().lower()
     photo = ROOT / "media" / "destinations" / f"{country}.jpg"
-    photo_html = (
-        f'''        <figure class="aw-photo aw-intro__photo">
-          <img class="aw-photo__img" src="{{{{root}}}}media/destinations/{country}.jpg" width="1600" height="1067" alt="{esc(city or country.title())}" loading="eager" fetchpriority="high" decoding="async">
-        </figure>''' if country and photo.exists() else "")
+    if photos:
+        photo_html = f'        <figure class="aw-photo aw-intro__photo">{photo_img(photos[0], "(min-width: 992px) 56vw, 92vw", eager=True)}</figure>'
+    elif country and photo.exists():   # no Unsplash photos for this place: the country photo of the Destinations section
+        photo_html = (f'        <figure class="aw-photo aw-intro__photo"><img class="aw-photo__img" src="{{{{root}}}}media/destinations/{country}.jpg" '
+                      f'width="1600" height="1067" alt="{esc(city or country.title())}" loading="eager" fetchpriority="high" decoding="async"></figure>')
+    else:
+        photo_html = ""
     values = {
         "title": esc(job["title"]),
         "place": esc(city or loc or "Atlean World"),
@@ -408,6 +483,7 @@ def render_job(template, job):
         "bar_html": bar_html,
         "chapters_html": chapters_html,
         "apply_html": render_apply(job),
+        "credits_html": photo_credits(used_photos),
     }
 
     def field(m):
@@ -544,6 +620,7 @@ def build():
         sources.append((Path(post["slug"]) / "index.html", render_post(template, post, posts), post_seo(post)))
 
     jobs = load_jobs()
+    assign_photos(jobs)
     job_template = (SRC / "templates" / "job.html").read_text(encoding="utf-8")
     for job in jobs:
         if not SLUG_RE.match(job["slug"] or ""):
