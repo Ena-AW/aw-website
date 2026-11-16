@@ -1,0 +1,158 @@
+/* =========================================================================
+   ATLEAN WORLD · 404 (page not found)
+   Everything is scoped to .aw-404. The navy banner that fades into white,
+   with the Atlean "A", then the main sections of the site as large links.
+   ========================================================================= */
+
+.aw-404 {
+  --aw-navy:  #193360;
+  --aw-pale:  #d7dff2;
+  --aw-tint:  #f4f6fc;
+  --aw-ink:   #193360;
+  --aw-body:  #34496f;
+  --aw-muted: #4f668c;
+  --aw-focus: #193360;
+
+  --aw-max: 1240px;
+  --aw-gutter: clamp(1.25rem, 4.5vw, 3.5rem);
+  --aw-seam: clamp(4rem, 10vw, 7rem);
+  --aw-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  display: block;
+  overflow-x: hidden;
+  overflow-x: clip;
+  color-scheme: light;
+  font-family: var(--site-font);
+  line-height: 1.5;
+  color: var(--aw-body);
+  background: #fff;
+}
+.aw-404 *, .aw-404 *::before, .aw-404 *::after { box-sizing: border-box; }
+.aw-404 :where(h1, h2, p, ul) { margin: 0; padding: 0; }
+.aw-404 :where(ul) { list-style: none; }
+.aw-404 :where(h1, h2) { text-wrap: balance; }
+.aw-404 :where(p) { text-wrap: pretty; }
+.aw-404 :focus-visible { outline: 3px solid var(--aw-focus); outline-offset: 3px; }
+.aw-404__wrap, .aw-404__inner { width: min(100% - 2 * var(--aw-gutter), var(--aw-max)); margin-inline: auto; }
+
+/* =========================================================================
+   1. BANNER
+   ========================================================================= */
+.aw-404__hero {
+  --aw-focus: #fff;
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: center;
+  min-height: clamp(30rem, 72svh, 44rem);
+  color: #fff;
+  background: linear-gradient(140deg, #12264a 0%, #254477 55%, #4d6a9f 100%);
+}
+.aw-404__hero::after {   /* dissolves into the white section below */
+  content: ""; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: var(--aw-seam);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff);
+  pointer-events: none;
+}
+.aw-404__mark {
+  position: absolute; z-index: -1; right: 0; bottom: 3%;
+  width: auto; max-width: none;
+  height: min(92%, 40rem, 44vw);
+  transform: translateX(22%);
+  filter: brightness(0) invert(1); opacity: 0.08;
+  pointer-events: none; user-select: none; -webkit-user-select: none;
+}
+.aw-404__inner { padding: clamp(4rem, 9vw, 7rem) 0 calc(var(--aw-seam) + 1rem); }
+
+.aw-404__code {
+  font-size: clamp(5.5rem, 3rem + 14vw, 13rem);
+  font-weight: 800; line-height: 0.9; letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.55);
+}
+@supports not (-webkit-text-stroke: 1px #fff) {
+  .aw-404__code { color: rgba(255, 255, 255, 0.35); }
+}
+.aw-404__title {
+  margin-top: clamp(0.75rem, 2vw, 1.25rem); max-width: 18ch;
+  color: #fff;
+  font-size: clamp(2rem, 0.9rem + 4.2vw, 4rem);
+  line-height: 1.05; letter-spacing: -0.035em; font-weight: 700;
+}
+.aw-404__sub {
+  margin-top: 1rem; max-width: 36rem;
+  font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.3125rem);
+  line-height: 1.45; letter-spacing: -0.008em; color: rgba(255, 255, 255, 0.92);
+}
+.aw-404__path { margin-top: 0.75rem; font-size: 0.9375rem; color: rgba(255, 255, 255, 0.75); overflow-wrap: anywhere; }
+.aw-404__path code {
+  padding: 0.1em 0.45em; border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em;
+  color: #fff; background: rgba(255, 255, 255, 0.14);
+}
+
+.aw-404__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: clamp(1.75rem, 4vw, 2.5rem); }
+.aw-404__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3rem; padding: 0.8em 1.6em; border-radius: 999px;
+  font-size: 1.0625rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em;
+  text-decoration: none; white-space: nowrap;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color 0.4s var(--aw-ease), border-color 0.4s var(--aw-ease);
+}
+.aw-404__btn:active { transform: scale(0.97); }
+.aw-404__btn--light { color: var(--aw-navy); background: #fff; border: 2px solid #fff; }
+.aw-404__btn--light:hover, .aw-404__btn--light:focus { background: var(--aw-pale); border-color: var(--aw-pale); }
+.aw-404__btn--ghost { color: #fff; background: transparent; border: 2px solid rgba(255, 255, 255, 0.6); }
+.aw-404__btn--ghost:hover, .aw-404__btn--ghost:focus { background: rgba(255, 255, 255, 0.14); border-color: #fff; }
+
+@media (max-width: 43.6875rem) {
+  .aw-404__mark { top: 6%; bottom: auto; height: 42%; transform: translateX(34%); }
+  .aw-404__actions { flex-direction: column; align-items: stretch; }
+  .aw-404__btn { width: 100%; }
+}
+
+@keyframes aw-404-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .aw-404__code, .aw-404__title, .aw-404__sub, .aw-404__path, .aw-404__actions { animation: aw-404-rise 0.9s var(--aw-ease) both; }
+  .aw-404__title { animation-delay: 0.08s; }
+  .aw-404__sub, .aw-404__path { animation-delay: 0.16s; }
+  .aw-404__actions { animation-delay: 0.24s; }
+}
+
+/* =========================================================================
+   2. WHERE TO NEXT · four large links, one column on phones
+   ========================================================================= */
+.aw-404__next { padding: clamp(1rem, 3vw, 2rem) 0 clamp(4rem, 9vw, 7rem); }
+.aw-404__next-title {
+  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.25rem);
+  line-height: 1.15; letter-spacing: -0.025em; font-weight: 700; color: var(--aw-ink);
+}
+.aw-404__links {
+  display: grid; gap: 1rem; margin-top: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+.aw-404__links a {
+  position: relative; display: flex; flex-direction: column; gap: 0.4rem; height: 100%;
+  padding: 1.5rem 3.25rem 1.5rem 1.5rem; border: 1px solid var(--aw-pale); border-radius: 18px;
+  color: inherit; text-decoration: none; background: #fff;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.4s var(--aw-ease), background-color 0.4s var(--aw-ease), transform 0.1s ease-out;
+}
+.aw-404__links a:hover, .aw-404__links a:focus-visible { border-color: var(--aw-navy); background: var(--aw-tint); }
+.aw-404__links a:active { transform: scale(0.985); }
+.aw-404__link-title { font-size: 1.1875rem; font-weight: 700; letter-spacing: -0.015em; color: var(--aw-ink); }
+.aw-404__link-text { font-size: 0.9375rem; line-height: 1.45; color: var(--aw-muted); }
+.aw-404__arrow {
+  position: absolute; right: 1.5rem; top: 1.45rem;
+  font-size: 1.25rem; line-height: 1; color: var(--aw-navy);
+  transition: transform 0.4s var(--aw-ease);
+}
+.aw-404__links a:hover .aw-404__arrow, .aw-404__links a:focus-visible .aw-404__arrow { transform: translateX(4px); }
+
+.aw-404__help { margin-top: clamp(1.5rem, 4vw, 2.5rem); font-size: 0.9375rem; color: var(--aw-muted); }
+.aw-404__help a { font-weight: 600; color: var(--aw-ink); text-decoration: underline; text-underline-offset: 0.25em; text-decoration-thickness: 0.07em; overflow-wrap: anywhere; }
+.aw-404__help a:hover, .aw-404__help a:focus { text-decoration-thickness: 0.12em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aw-404__btn:active, .aw-404__links a:active { transform: none; }
+  .aw-404__links a:hover .aw-404__arrow { transform: none; }
+}
