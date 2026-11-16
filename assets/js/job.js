@@ -33,6 +33,28 @@
     window.addEventListener('resize', queueSpy);
     spy();
   }
+  // In-page links (#apply, chapter links): land just below the sticky section
+  // bar, so it never covers the top of the section. Runs before the site's
+  // smooth scroll, which would otherwise put the section under the bar.
+  function barBottom() {
+    if (!bar) return 0;
+    return (parseFloat(getComputedStyle(bar).top) || 0) + bar.offsetHeight;
+  }
+  window.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a || !root || !root.contains(a)) return;
+    var id = a.getAttribute('href').slice(1);
+    var target = id && document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    var y = target.getBoundingClientRect().top + window.pageYOffset - barBottom() - 16;
+    if (window.awLenis) window.awLenis.scrollTo(Math.max(0, y));
+    else window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    if (history.pushState) history.pushState(null, '', '#' + id);
+  }, true);
+
   // a photo that can't be loaded: its frame disappears (no broken-image icon)
   [].forEach.call(document.querySelectorAll('.aw-photo__img'), function (img) {
     function missing() { var f = img.closest('.aw-photo'); if (f) f.classList.add('is-missing'); }
@@ -81,6 +103,12 @@
     consentAt = e.target.checked ? new Date().toISOString() : '';
     setError('consent', '');
   });
+  // the phone number takes digits only (spaces allowed to group them)
+  var phoneInput = form.elements.phone_number;
+  phoneInput.addEventListener('input', function () {
+    var clean = phoneInput.value.replace(/[^\d ]/g, '');
+    if (clean !== phoneInput.value) phoneInput.value = clean;
+  });
   form.addEventListener('input', function (e) {
     var name = e.target.name === 'phone_number' ? 'phone' : e.target.name;
     if (name) setError(name, '');
@@ -91,8 +119,8 @@
     var digits = form.elements.phone_number.value.replace(/[^\d]/g, '');
     if (code !== '+39') digits = digits.replace(/^0+/, '');   // drop the national 0 (Italy keeps it)
     var typed = form.elements.phone_number.value.trim();
-    // someone typing "+44 ..." in the number field means it
-    if (/^(\+|00)/.test(typed)) return '+' + typed.replace(/^00/, '').replace(/[^\d]/g, '');
+    // someone typing "0044 ..." in the number field means it
+    if (/^00/.test(typed)) return '+' + typed.replace(/^00/, '').replace(/[^\d]/g, '');
     return code + digits;
   }
 
