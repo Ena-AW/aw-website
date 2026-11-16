@@ -1,0 +1,26 @@
+name: Sync jobs from Atleable
+
+# Every 15 minutes, asks Supabase to copy new and changed Atleable jobs into
+# the website. If anything changed, the site is rebuilt (about a minute).
+# Needs the repository variable SUPABASE_URL and the secret ATLEABLE_SYNC_KEY
+# (the same value as the ATLEABLE_SYNC_KEY secret in Supabase).
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: ${{ vars.SUPABASE_URL != '' }}
+    steps:
+      - name: Sync
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SYNC_KEY: ${{ secrets.ATLEABLE_SYNC_KEY }}
+        run: |
+          curl --fail-with-body -sS -X POST "${SUPABASE_URL%/}/functions/v1/atleable-sync" \
+            -H "x-sync-key: $SYNC_KEY" -H "Content-Type: application/json" -d '{}'
