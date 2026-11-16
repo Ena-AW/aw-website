@@ -24,7 +24,7 @@ alter table website.jobs
 --   'mkt'    only published jobs whose client is a marketing client (MKT)
 --   'manual' every published job is copied in as a draft; the team publishes it
 create or replace function website.atleable_rule() returns text
-language sql immutable set search_path = '' as $$ select 'all' $$;
+language sql immutable set search_path = '' as $$ select 'mkt' $$;
 
 create or replace function website.slugify(t text) returns text
 language sql immutable set search_path = '' as $$
