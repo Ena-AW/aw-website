@@ -61,7 +61,7 @@ export async function toTikTok(token: string, p: TtPost, jpeg: (url: string) => 
       const end = i === count - 1 ? size - 1 : start + chunk - 1;
       const res = await fetch(init.upload_url, {
         method: "PUT",
-        headers: { "Content-Type": "video/mp4", "Content-Length": String(end - start + 1), "Content-Range": `bytes ${start}-${end}/${size}` },
+        headers: { "Content-Type": "video/mp4", "Content-Range": `bytes ${start}-${end}/${size}` },
         body: bytes.slice(start, end + 1),
       });
       if (!res.ok) throw new TikTokError(`TikTok didn't accept the video upload (${res.status}).`);
