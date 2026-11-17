@@ -1,9 +1,9 @@
 // Admin panel · Social media planner.
 // Plan, write and schedule posts, carousels, reels and stories for Instagram,
 // Facebook and LinkedIn in one place. Posts are stored in website.social_posts;
-// a publishing job (Edge Function on a schedule, added once the Meta and
-// LinkedIn apps are approved) sends each one out at its time and writes the
-// result back. Until then everything here works except the actual sending.
+// the social-publish Edge Function (pg_cron, every 5 minutes) sends each one
+// to Facebook and Instagram at its time and writes the result back.
+// LinkedIn is not connected yet.
 (function () {
   'use strict';
 
@@ -185,9 +185,15 @@
   }
 
   // ------------------------------------------------------------------ accounts
+  function fnError(err) {
+    var ctx = err && err.context;
+    if (ctx && typeof ctx.json === 'function') {
+      ctx.json().then(function (j) { A.toast((j && j.error) || err.message, 'error'); }, function () { A.toast(err.message, 'error'); });
+    } else A.toast((err && err.message) || 'Something went wrong.', 'error');
+  }
   function accounts(body) {
     var isAdmin = A.me().role === 'admin';
-    body.innerHTML = '<div class="soc-accounts"></div><p class="adm-small soc-accounts__note">Connecting needs the Atlean World apps approved by Meta and LinkedIn first. Until then, plan and schedule as normal: everything is kept and will go out once connected.</p>';
+    body.innerHTML = '<div class="soc-accounts"></div><p class="adm-small soc-accounts__note">Facebook and Instagram connect through the Meta system user token saved in Supabase. Scheduled posts go out within 5 minutes of their time. LinkedIn is not connected yet: posts for it are kept and the other networks still go out.</p>';
     sb.from('social_accounts').select('*').then(function (res) {
       var rows = res.data || [];
       $('.soc-accounts', body).innerHTML = ORDER.map(function (n) {
@@ -200,14 +206,34 @@
           '<span class="soc-net soc-net--' + n + ' soc-net--lg">' + ICON[n] + '</span>' +
           '<div class="soc-acc__main"><h2>' + NETS[n].name + '</h2>' +
             '<p class="adm-small">' + (on ? 'Connected as <strong>' + esc(acc.name || acc.handle) + '</strong>' : desc) + '</p></div>' +
-          (on ? '<span class="adm-pill adm-pill--published">Connected</span>'
+          (on ? '<span class="adm-pill adm-pill--published">Connected</span>' + (isAdmin && n !== 'linkedin' ? '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-disconnect>Disconnect</button>' : '')
               : acc && acc.status === 'expired' ? '<span class="adm-pill adm-pill--closed">Needs reconnecting</span>'
               : '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-connect="' + n + '"' + (isAdmin ? '' : ' disabled title="Only admins can connect accounts"') + '>Connect</button>') +
         '</section>';
       }).join('');
       $$('[data-connect]', body).forEach(function (b) {
         b.addEventListener('click', function () {
-          A.toast('Connecting ' + NETS[b.dataset.connect].name + ' is being set up. Posts you schedule now are kept and go out once it is connected.');
+          var n = b.dataset.connect;
+          if (n === 'linkedin') return A.toast('LinkedIn is not connected yet. Posts you schedule for it are kept.');
+          A.busy(b, true);
+          sb.functions.invoke('social-publish', { body: { action: 'connect' } }).then(function (res) {
+            A.busy(b, false);
+            if (res.error) return fnError(res.error);
+            var c = res.data.connected || {};
+            A.toast('Connected Facebook (' + c.facebook + ')' + (c.instagram ? ' and Instagram (' + c.instagram + ').' : '. No Instagram business account is linked to that Page yet.'), 'ok');
+            accounts(body);
+          });
+        });
+      });
+      $$('[data-disconnect]', body).forEach(function (b) {
+        b.addEventListener('click', function () {
+          A.confirmDialog('Disconnect Facebook and Instagram?', 'Scheduled posts wait until they are connected again.').then(function (ok) {
+            if (!ok) return;
+            sb.functions.invoke('social-publish', { body: { action: 'disconnect' } }).then(function (res) {
+              if (res.error) return fnError(res.error);
+              accounts(body);
+            });
+          });
         });
       });
     });
@@ -510,6 +536,7 @@
       var x = r[n] || {};
       return '<li class="' + (x.error ? 'is-bad' : 'is-ok') + '"><span class="soc-net soc-net--' + n + '">' + (ICON[n] || '') + '</span>' +
         (x.error ? esc(NETS[n] ? NETS[n].name : n) + ': ' + esc(x.error)
+                 : x.pending ? esc(NETS[n] ? NETS[n].name : n) + ' is still processing the video. It goes out on the next run.'
                  : (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">See it on ' + esc(NETS[n] ? NETS[n].name : n) + ' ↗</a>' : 'Published')) +
       '</li>';
     }).join('') + '</ul>';
