@@ -119,7 +119,6 @@ The admin's **Social media** tab plans posts, carousels, reels and stories. The 
 
 Setup:
 
-1. Supabase → Edge Functions → Secrets: `META_SYSTEM_TOKEN` (the token), `SOCIAL_CRON_KEY` (a long random string), and `META_PAGE_ID` only if the token reaches more than one Page.
-2. Supabase → Vault: `project_url` (`https://<project>.supabase.co`) and `social_cron_key` (the same value as `SOCIAL_CRON_KEY`).
-3. Deploy with `supabase functions deploy social-publish --no-verify-jwt` and apply the migration.
-4. Admin → Social media → Accounts → **Connect** on Facebook or Instagram (the first scheduled run also connects by itself).
+1. Supabase → Edge Functions → Secrets: `META_SYSTEM_TOKEN` (the token), and `META_PAGE_ID` only if the token reaches more than one Page.
+2. Deploy with `supabase functions deploy social-publish --no-verify-jwt` and apply the migration. It creates the Vault secrets `project_url` and `social_cron_key` (the key pg_cron sends) if they are missing.
+3. Admin → Social media → Accounts → **Connect** on Facebook or Instagram (the first scheduled run also connects by itself).

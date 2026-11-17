@@ -12,7 +12,7 @@
 //                      pages_show_list, pages_read_engagement, pages_manage_posts,
 //                      instagram_basic, instagram_content_publish, business_management
 //   META_PAGE_ID       optional: which Page, if the token can reach several
-//   SOCIAL_CRON_KEY    any long random string; the same value is in Vault as social_cron_key
+// The cron key is the Vault secret social_cron_key (read with website.social_cron_key()).
 // Deploy with JWT verification off, because pg_cron sends no login:
 //   supabase functions deploy social-publish --no-verify-jwt
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -307,14 +307,56 @@ async function target(db: SupabaseClient): Promise<Target | null> {
   return { page: fb.external_id, ig: igRow?.external_id || null, token: tok };
 }
 
+// ------------------------------------------------------------------ scheduled in Meta
+// Posts scheduled directly in Meta Business Suite for the Facebook Page are
+// copied into the planner (source 'meta'), so the calendar shows everything
+// that is coming. They are read-only: Meta publishes them, never this function.
+// Meta's API does not list Instagram posts scheduled in Business Suite.
+async function syncMeta(db: SupabaseClient, t: Target) {
+  const r = await graph(`/${t.page}/scheduled_posts`, t.token, {
+    fields: "id,message,scheduled_publish_time,full_picture,attachments{media_type,media{image{src}},subattachments{media{image{src}}},unshimmed_url}",
+    limit: 100,
+  }, "GET");
+  const list = (r.data || []) as Array<Record<string, any>>;
+  const seen: string[] = [];
+  for (const x of list) {
+    const when = typeof x.scheduled_publish_time === "number"
+      ? new Date(x.scheduled_publish_time * 1000).toISOString()
+      : new Date(x.scheduled_publish_time).toISOString();
+    const att = x.attachments?.data?.[0];
+    const subs = (att?.subattachments?.data || []).map((a: any) => a.media?.image?.src).filter(Boolean);
+    const pics: string[] = subs.length ? subs : [att?.media?.image?.src || x.full_picture].filter(Boolean);
+    const isVideo = /video/i.test(att?.media_type || "");
+    seen.push(x.id);
+    const { error } = await db.from("social_posts").upsert({
+      source: "meta", external_id: x.id,
+      title: "", format: pics.length > 1 ? "carousel" : "post", platforms: ["facebook"],
+      caption: x.message || "", media: pics.map((u) => ({ url: u, kind: isVideo ? "video" : "image" })),
+      link_url: att?.unshimmed_url || "", scheduled_at: when, status: "scheduled",
+    }, { onConflict: "source,external_id" });
+    if (error) console.error("meta sync", x.id, error.message);
+  }
+  // Copies that Meta no longer lists: published if their time has passed, otherwise cancelled there.
+  const { data: mine } = await db.from("social_posts").select("id,external_id,scheduled_at").eq("source", "meta").eq("status", "scheduled");
+  for (const m of mine || []) {
+    if (seen.includes(m.external_id)) continue;
+    if (m.scheduled_at && new Date(m.scheduled_at).getTime() <= Date.now() + 60_000) {
+      await db.from("social_posts").update({ status: "published", results: { facebook: { id: m.external_id, url: `https://www.facebook.com/${m.external_id}` } } }).eq("id", m.id);
+    } else {
+      await db.from("social_posts").delete().eq("id", m.id);
+    }
+  }
+  return list.length;
+}
+
 // ------------------------------------------------------------------ publishing
 async function publishDue(db: SupabaseClient, t: Target, deadline: number) {
   // Posts left in "publishing" by a run that crashed go back in the queue after 15 minutes.
   await db.from("social_posts").update({ status: "scheduled" })
-    .eq("status", "publishing").lt("updated_at", new Date(Date.now() - 15 * 60_000).toISOString());
+    .eq("status", "publishing").is("source", null).lt("updated_at", new Date(Date.now() - 15 * 60_000).toISOString());
 
   const { data: due } = await db.from("social_posts").select("*")
-    .eq("status", "scheduled").lte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(10);
+    .eq("status", "scheduled").is("source", null).lte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(10);
   const out: Array<{ id: string; status: string }> = [];
 
   for (const p of (due || []) as Post[]) {
@@ -357,8 +399,11 @@ Deno.serve(async (req) => {
 
   // Who is calling?
   let role: "cron" | "admin" | "staff" | null = null;
-  if (sameKey(req.headers.get("x-cron-key") || "", Deno.env.get("SOCIAL_CRON_KEY") || "")) role = "cron";
-  else {
+  const cronKey = req.headers.get("x-cron-key") || "";
+  if (cronKey) {
+    const { data: want } = await db.rpc("social_cron_key");
+    if (sameKey(cronKey, String(want || ""))) role = "cron";
+  } else {
     const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     const { data: who } = jwt ? await db.auth.getUser(jwt) : { data: null };
     if (who?.user) {
@@ -385,9 +430,11 @@ Deno.serve(async (req) => {
     }
     if (action !== "run") return reply(400, { error: "Unknown action." });
 
-    const t = await target(db).catch((e) => { console.error("connect", e); return null; });
+    let problem = "";
+    const t = await target(db).catch((e) => { problem = (e as Error).message; console.error("connect", e); return null; });
+    const fromMeta = t ? await syncMeta(db, t).catch((e) => { console.error("meta sync", e); return (e as Error).message; }) : 0;
     const published = t ? await publishDue(db, t, deadline) : [];
-    return reply(200, { ok: true, connected: !!t, published });
+    return reply(200, { ok: true, connected: !!t, problem, scheduled_in_meta: fromMeta, published });
   } catch (e) {
     return reply(e instanceof MetaError ? 400 : 500, { error: (e as Error).message });
   }

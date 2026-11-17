@@ -136,7 +136,7 @@
     $('[data-today]', body).addEventListener('click', function () { month = null; calendar(body); });
 
     Promise.all([
-      sb.from('social_posts').select('id,title,caption,format,platforms,media,scheduled_at,status').gte('scheduled_at', from.toISOString()).lte('scheduled_at', to.toISOString()).order('scheduled_at'),
+      sb.from('social_posts').select('id,title,caption,format,platforms,media,scheduled_at,status,source').gte('scheduled_at', from.toISOString()).lte('scheduled_at', to.toISOString()).order('scheduled_at'),
       sb.from('social_posts').select('id', { count: 'exact', head: true }).is('scheduled_at', null)
     ]).then(function (r) {
       if (r[0].error) { A.toast(A.friendly(r[0].error), 'error'); return; }
@@ -144,9 +144,9 @@
         var cell = $('[data-day="' + dayKey(new Date(p.scheduled_at)) + '"] .soc-day__posts', body);
         if (!cell) return;
         cell.insertAdjacentHTML('beforeend',
-          '<a class="soc-chip soc-chip--' + p.status + '" href="#social/post/' + p.id + '" title="' + esc(label(p)) + '">' +
+          '<a class="soc-chip soc-chip--' + p.status + '" href="#social/post/' + p.id + '" title="' + esc((p.source === 'meta' ? 'Scheduled in Meta Business Suite: ' : '') + label(p)) + '">' +
             '<span class="soc-chip__time">' + timeOf(new Date(p.scheduled_at)) + '</span>' + netIcons(p.platforms) +
-            '<span class="soc-chip__text">' + esc(label(p)) + '</span></a>');
+            '<span class="soc-chip__text">' + (p.source === 'meta' ? '<small>Meta · </small>' : '') + esc(label(p)) + '</span></a>');
       });
       var n = r[1].count || 0;
       $('[data-drafts]', body).innerHTML = n ? n + (n === 1 ? ' draft has' : ' drafts have') + ' no date yet. <a href="#social/list">See them in the list</a>.' : '';
@@ -166,7 +166,7 @@
       b.addEventListener('click', function () { listFilter = b.dataset.f; list(body); });
     });
 
-    var q = sb.from('social_posts').select('id,title,caption,format,platforms,media,scheduled_at,status,updated_at');
+    var q = sb.from('social_posts').select('id,title,caption,format,platforms,media,scheduled_at,status,updated_at,source');
     if (listFilter === 'upcoming') q = q.in('status', ['scheduled', 'publishing']).order('scheduled_at');
     else if (listFilter === 'all') q = q.order('updated_at', { ascending: false });
     else q = q.eq('status', listFilter).order(listFilter === 'draft' ? 'updated_at' : 'scheduled_at', { ascending: false });
@@ -178,7 +178,7 @@
         return '<li><a class="adm-row soc-row" href="#social/post/' + p.id + '">' +
           thumb(firstMedia(p)) +
           '<span class="adm-row__main"><strong>' + esc(label(p)) + '</strong>' +
-            '<span class="adm-row__meta">' + netIcons(p.platforms) + ' ' + esc(FORMATS[p.format].name) + ' · ' + esc(niceWhen(p.scheduled_at)) + '</span></span>' +
+            '<span class="adm-row__meta">' + netIcons(p.platforms) + ' ' + esc(FORMATS[p.format].name) + ' · ' + esc(niceWhen(p.scheduled_at)) + (p.source === 'meta' ? ' · scheduled in Meta' : '') + '</span></span>' +
           pill(p.status) + '</a></li>';
       }).join('') : '<li class="adm-empty">' + ({ upcoming: 'Nothing scheduled. Click “New post” to plan one.', draft: 'No drafts.', published: 'Nothing published from here yet.', failed: 'No failed posts.', all: 'No posts yet.' })[listFilter] + '</li>';
     });
@@ -254,13 +254,15 @@
         format: p.format, platforms: p.platforms.slice(), media: (p.media || []).slice(),
         overrides: JSON.parse(JSON.stringify(p.overrides || {})), preview: null
       };
-      var locked = p.status === 'published' || p.status === 'publishing';
+      var fromMeta = p.source === 'meta';
+      var locked = fromMeta || p.status === 'published' || p.status === 'publishing';
       var when = p.scheduled_at ? new Date(p.scheduled_at) : null;
 
       view.innerHTML =
         '<form class="adm-edit soc-edit" novalidate>' +
         '<div class="adm-head"><a class="adm-back" href="#social">‹ Social media</a><h1>' + (isNew ? 'New post' : esc(label(p))) + '</h1>' + (isNew ? '' : pill(p.status)) + '</div>' +
-        (locked ? '<p class="adm-note">This post has already gone out. Changes here won’t update it on the networks. Use “Duplicate” to post it again.</p>' : '') +
+        (fromMeta ? '<p class="adm-note">This post was scheduled in Meta Business Suite, so Meta publishes it. It is shown here so the calendar has everything. To change or cancel it, do it in Business Suite: this copy updates within 5 minutes.</p>' : '') +
+        (locked && !fromMeta ? '<p class="adm-note">This post has already gone out. Changes here won’t update it on the networks. Use “Duplicate” to post it again.</p>' : '') +
         resultsHtml(p) +
         '<div class="soc-main">' +
           '<section class="adm-card">' +
