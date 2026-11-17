@@ -108,3 +108,17 @@ Setup, once:
 2. Supabase → Edge Functions → Secrets: add `ATLEABLE_WEBSITE_KEY` (the key Atleable gave) and `TURNSTILE_SECRET` (the Turnstile secret key for site key `0x4AAAAAAEj9k0XBclhf6p7N`).
 3. Cloudflare Turnstile: the site's hostnames must include `atleanworld.com` and `ena-aw.github.io` (preview).
 
+
+## Social media publishing (Facebook and Instagram)
+
+The admin's **Social media** tab plans posts, carousels, reels and stories. The `social-publish` Edge Function sends each scheduled one to the Atlean World Facebook Page and Instagram when its time comes, and writes the links (or the error) back to the post. pg_cron calls it every 5 minutes (`supabase/migrations/20261117160000_social_publishing.sql`). LinkedIn is not connected yet: its part of a post is skipped and the other networks still go out.
+
+- Meta access is a Business Manager **system user** token, which does not expire, with `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`, `instagram_content_publish` and `business_management`. The Instagram account must be a business account linked to the Facebook Page.
+- Instagram takes only JPEG photos between 4:5 and 1.91:1. Other photos are converted and cropped once and kept in the media bucket under `social/ig/`. Videos must be MP4. If Instagram is still processing a video, the post stays scheduled and the next run publishes it.
+- A post that fails on one network can be scheduled again: networks it already went out on are skipped.
+
+Setup:
+
+1. Supabase → Edge Functions → Secrets: `META_SYSTEM_TOKEN` (the token), and `META_PAGE_ID` only if the token reaches more than one Page.
+2. Deploy with `supabase functions deploy social-publish --no-verify-jwt` and apply the migration. It creates the Vault secrets `project_url` and `social_cron_key` (the key pg_cron sends) if they are missing.
+3. Admin → Social media → Accounts → **Connect** on Facebook or Instagram (the first scheduled run also connects by itself).
