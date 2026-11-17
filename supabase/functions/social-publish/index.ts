@@ -1,5 +1,7 @@
 // Publishes the Social media planner's scheduled posts, carousels, reels and
-// stories to the Facebook Page and Instagram when their time comes.
+// stories to the Facebook Page, Instagram, the LinkedIn company page and
+// TikTok when their time comes. LinkedIn and TikTok connect through
+// social-oauth; their tokens are renewed here before they run out.
 //
 // Who can call it:
 //   * pg_cron every 5 minutes, with the header  x-cron-key: <SOCIAL_CRON_KEY>
@@ -17,6 +19,8 @@
 //   supabase functions deploy social-publish --no-verify-jwt
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
 import { decode, Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
+import { LinkedInError, refreshLinkedIn, toLinkedIn } from "./linkedin.ts";
+import { refreshTikTok, TikTokError, tiktokStatus, toTikTok } from "./tiktok.ts";
 
 const GRAPH = "https://graph.facebook.com/v23.0";
 const RUPLOAD = "https://rupload.facebook.com/video-upload/v23.0";
@@ -45,7 +49,7 @@ type Post = {
   scheduled_at: string | null; status: string; results: Record<string, Record<string, string>>;
 };
 type Target = { page: string; ig: string | null; token: string };
-type Done = { id: string; url?: string } | { pending: string };
+type Done = { id: string; url?: string; note?: string } | { pending: string; note?: string };
 
 // ------------------------------------------------------------------ Graph API
 class MetaError extends Error {}
@@ -289,22 +293,58 @@ async function connect(db: SupabaseClient) {
   return { facebook: page.name, instagram: igAcc ? "@" + igAcc.username : null };
 }
 
-async function target(db: SupabaseClient): Promise<Target | null> {
+type Accounts = { meta: Target | null; linkedin: { urn: string; token: string } | null; tiktok: { token: string } | null; problems: string[] };
+
+async function accounts(db: SupabaseClient): Promise<Accounts> {
+  const out: Accounts = { meta: null, linkedin: null, tiktok: null, problems: [] };
   const load = async () => {
-    const { data } = await db.from("social_accounts").select("id,platform,external_id,status,social_tokens(access_token)")
-      .in("platform", ["facebook", "instagram"]).eq("status", "connected");
+    const { data } = await db.from("social_accounts")
+      .select("id,platform,external_id,status,social_tokens(access_token,refresh_token,expires_at,refresh_expires_at)")
+      .eq("status", "connected");
     return (data || []) as Array<Record<string, any>>;
   };
   let rows = await load();
   if (!rows.some((r) => r.platform === "facebook") && Deno.env.get("META_SYSTEM_TOKEN")) {
-    await connect(db); // first run after the token was saved
-    rows = await load();
+    try { await connect(db); rows = await load(); } // first run after the token was saved
+    catch (e) { out.problems.push("Meta: " + (e as Error).message); }
   }
+  const tokOf = (r: any) => (Array.isArray(r?.social_tokens) ? r.social_tokens[0] : r?.social_tokens) || null;
+
   const fb = rows.find((r) => r.platform === "facebook");
   const igRow = rows.find((r) => r.platform === "instagram");
-  const tok = fb?.social_tokens?.access_token || fb?.social_tokens?.[0]?.access_token;
-  if (!fb || !tok) return null;
-  return { page: fb.external_id, ig: igRow?.external_id || null, token: tok };
+  if (fb && tokOf(fb)?.access_token) out.meta = { page: fb.external_id, ig: igRow?.external_id || null, token: tokOf(fb).access_token };
+
+  // LinkedIn (60-day token) and TikTok (24-hour token): renew a day ahead.
+  const soon = Date.now() + 24 * 3600_000;
+  for (const platform of ["linkedin", "tiktok"] as const) {
+    const r = rows.find((x) => x.platform === platform);
+    const t = tokOf(r);
+    if (!r || !t?.access_token) continue;
+    let access = t.access_token as string;
+    const expires = t.expires_at ? new Date(t.expires_at).getTime() : Infinity;
+    if (expires < soon + (platform === "tiktok" ? 0 : 6 * 24 * 3600_000)) {
+      try {
+        if (!t.refresh_token) throw new Error("no refresh token");
+        const n = platform === "linkedin" ? await refreshLinkedIn(t.refresh_token) : await refreshTikTok(t.refresh_token);
+        access = n.access_token;
+        const at = (s?: number) => (s ? new Date(Date.now() + s * 1000).toISOString() : null);
+        await db.from("social_tokens").update({
+          access_token: n.access_token, refresh_token: n.refresh_token || t.refresh_token,
+          expires_at: at(n.expires_in), refresh_expires_at: at((n as any).refresh_token_expires_in || (n as any).refresh_expires_in) || t.refresh_expires_at,
+          updated_at: new Date().toISOString(),
+        }).eq("account_id", r.id);
+      } catch (e) {
+        if (expires < Date.now()) {
+          await db.from("social_accounts").update({ status: "expired" }).eq("id", r.id);
+          out.problems.push(`${platform}: sign-in expired, reconnect it (${(e as Error).message})`);
+          continue;
+        }
+      }
+    }
+    if (platform === "linkedin") out.linkedin = { urn: r.external_id, token: access };
+    else out.tiktok = { token: access };
+  }
+  return out;
 }
 
 // ------------------------------------------------------------------ scheduled in Meta
@@ -349,8 +389,28 @@ async function syncMeta(db: SupabaseClient, t: Target) {
   return list.length;
 }
 
+// ------------------------------------------------------------------ TikTok
+// TikTok publishes in the background: the first run starts it, later runs
+// check until TikTok says it is done.
+async function tiktokPublish(db: SupabaseClient, token: string, p: Post, prev?: Record<string, string>): Promise<Done> {
+  let id = prev?.pending, note = prev?.note;
+  if (!id) {
+    const r = await toTikTok(token, { format: p.format, caption: p.caption, media: p.media || [], overrides: p.overrides },
+      (url) => igImage(db, url, true));
+    id = r.publish_id;
+    if (r.privacy !== "PUBLIC_TO_EVERYONE") note = "Posted as private: TikTok hasn't approved the app for public posts yet.";
+  }
+  for (let i = 0; i < 5; i++) {
+    const s = await tiktokStatus(token, id);
+    if (s.done) return { id: s.id!, url: `https://www.tiktok.com/video/${s.id}`, ...(note ? { note } : {}) };
+    await sleep(4000);
+  }
+  return { pending: id, ...(note ? { note } : {}) };
+}
+
 // ------------------------------------------------------------------ publishing
-async function publishDue(db: SupabaseClient, t: Target, deadline: number) {
+async function publishDue(db: SupabaseClient, acc: Accounts, deadline: number) {
+  const t = acc.meta;
   // Posts left in "publishing" by a run that crashed go back in the queue after 15 minutes.
   await db.from("social_posts").update({ status: "scheduled" })
     .eq("status", "publishing").is("source", null).lt("updated_at", new Date(Date.now() - 15 * 60_000).toISOString());
@@ -368,15 +428,21 @@ async function publishDue(db: SupabaseClient, t: Target, deadline: number) {
     let waiting = false, failed = false;
     for (const net of p.platforms || []) {
       if (results[net]?.id) continue; // already out (a retry after another network failed)
-      if (net === "linkedin") { results[net] = { error: "LinkedIn isn't connected yet, so it was skipped." }; continue; }
-      if (net === "instagram" && !t.ig) { results[net] = { error: "No Instagram account is connected, so it was skipped." }; continue; }
+      const name = ({ facebook: "Facebook", instagram: "Instagram", linkedin: "LinkedIn", tiktok: "TikTok" } as Record<string, string>)[net] || net;
+      const missing = (net === "facebook" && !t) || (net === "instagram" && !t?.ig) || (net === "linkedin" && !acc.linkedin) || (net === "tiktok" && !acc.tiktok);
+      if (missing) { results[net] = { error: `${name} isn't connected, so it was skipped.` }; continue; }
       try {
-        const r = net === "facebook" ? await toFacebook(p, t) : await toInstagram(db, { ...p, results }, t, deadline);
-        if ("pending" in r) { results[net] = { pending: r.pending }; waiting = true; }
-        else results[net] = { id: r.id, ...(r.url ? { url: r.url } : {}) };
+        let r: Done;
+        if (net === "facebook") r = await toFacebook(p, t!);
+        else if (net === "instagram") r = await toInstagram(db, { ...p, results }, t!, deadline);
+        else if (net === "linkedin") r = await toLinkedIn(db, acc.linkedin!, { format: p.format, caption: captionFor(p, "linkedin"), media: p.media || [], link_url: p.overrides?.linkedin?.link_url ?? p.link_url ?? "" });
+        else r = await tiktokPublish(db, acc.tiktok!.token, p, results.tiktok);
+        if ("pending" in r) { results[net] = { pending: r.pending, ...(r.note ? { note: r.note } : {}) }; waiting = true; }
+        else results[net] = { id: r.id, ...(r.url ? { url: r.url } : {}), ...(r.note ? { note: r.note } : {}) };
       } catch (e) {
         failed = true;
-        results[net] = { error: e instanceof MetaError ? e.message : `Something went wrong: ${(e as Error).message}` };
+        const known = e instanceof MetaError || e instanceof LinkedInError || e instanceof TikTokError;
+        results[net] = { error: known ? (e as Error).message : `Something went wrong: ${(e as Error).message}` };
       }
     }
     const status = waiting ? "scheduled" : failed ? "failed" : "published";
@@ -420,7 +486,8 @@ Deno.serve(async (req) => {
     }
     if (action === "disconnect") {
       if (role !== "admin") return reply(403, { error: "Only admins can disconnect accounts." });
-      const { data: accs } = await db.from("social_accounts").select("id").in("platform", ["facebook", "instagram"]);
+      const which = body.platform === "linkedin" || body.platform === "tiktok" ? [body.platform] : ["facebook", "instagram"];
+      const { data: accs } = await db.from("social_accounts").select("id").in("platform", which);
       const ids = (accs || []).map((a: any) => a.id);
       if (ids.length) {
         await db.from("social_tokens").delete().in("account_id", ids);
@@ -430,11 +497,15 @@ Deno.serve(async (req) => {
     }
     if (action !== "run") return reply(400, { error: "Unknown action." });
 
-    let problem = "";
-    const t = await target(db).catch((e) => { problem = (e as Error).message; console.error("connect", e); return null; });
+    const acc = await accounts(db);
+    const t = acc.meta;
     const fromMeta = t ? await syncMeta(db, t).catch((e) => { console.error("meta sync", e); return (e as Error).message; }) : 0;
-    const published = t ? await publishDue(db, t, deadline) : [];
-    return reply(200, { ok: true, connected: !!t, problem, scheduled_in_meta: fromMeta, published });
+    const any = !!(t || acc.linkedin || acc.tiktok);
+    const published = any ? await publishDue(db, acc, deadline) : [];
+    return reply(200, {
+      ok: true, connected: { meta: !!t, linkedin: !!acc.linkedin, tiktok: !!acc.tiktok },
+      problems: acc.problems, scheduled_in_meta: fromMeta, published,
+    });
   } catch (e) {
     return reply(e instanceof MetaError ? 400 : 500, { error: (e as Error).message });
   }
