@@ -19,6 +19,11 @@ writes there). Each published post becomes /<slug>/ from src/templates/post.html
 the same URLs the WordPress site used, and <!-- talks:list --> /
 <!-- talks:categories --> in a page are replaced by the list of posts.
 
+Old WordPress addresses: data/redirects.json maps each one ("jobs/old-slug") to its
+new page ("open-jobs/?language=German"). Every entry becomes a tiny page that sends
+the visitor on (GitHub Pages has no server redirects), unless a real page now lives
+at that address. Anything not listed is caught by the rules in 404.html.
+
 404.html is served by the host for every address that doesn't exist, at any
 depth, so its {{root}} is the absolute site path from SITE_BASE ("/" by default;
 the Pages workflow sets "/aw-website/" for the preview).
@@ -42,7 +47,7 @@ import seo
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 OUT = ROOT / "_site"
-STATIC_DIRS = ["assets", "data", "media"]
+STATIC_DIRS = ["assets", "data", "media", "wp-content"]   # wp-content: old WordPress image addresses
 _base = (os.environ.get("SITE_BASE") or "").strip("/")
 SITE_BASE = f"/{_base}/" if _base else "/"   # where the site lives on its host
 
@@ -602,6 +607,43 @@ def render_post(template, post, posts):
     return FIELD_RE.sub(field, template)
 
 
+REDIRECT_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Moved</title>
+<link rel="canonical" href="{canonical}">
+<meta http-equiv="refresh" content="0; url={href}">
+<script>location.replace({href_js});</script>
+</head>
+<body><p>This page has moved to <a href="{href}">{canonical}</a>.</p></body>
+</html>
+"""
+
+
+def write_redirects():
+    """One small page per old WordPress address in data/redirects.json."""
+    path = ROOT / "data" / "redirects.json"
+    if not path.exists():
+        return 0
+    count = 0
+    for old, new in json.loads(path.read_text(encoding="utf-8")).items():
+        old = old.strip("/")
+        if not old or ".." in old.split("/"):
+            continue
+        dest = OUT / old / "index.html"
+        if dest.exists():   # a real page lives here now (e.g. a job reopened with the same slug)
+            continue
+        new = new.lstrip("/")
+        href = SITE_BASE + new
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(REDIRECT_PAGE.format(canonical=esc(seo.SITE_URL + "/" + new), href=esc(href),
+                                             href_js=json.dumps(href) + ("" if "#" in href else " + location.hash")),
+                        encoding="utf-8")
+        count += 1
+    return count
+
+
 def build():
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -671,13 +713,14 @@ def build():
     (OUT / "sitemap.xml").write_text(seo.sitemap_xml(sitemap), encoding="utf-8")
     (OUT / "robots.txt").write_text(seo.robots_txt(), encoding="utf-8")
 
+    redirects = write_redirects()
     write_job_data(jobs)
     # the three newest articles, for the Atlean Talks section of the home page
     latest = [{"title": p["title"], "url": f"{p['slug']}/", "date": p["date"], "cover": p["cover"]} for p in posts[:3]]
     (OUT / "data" / "team-photos.json").write_text(json.dumps(team_photos()), encoding="utf-8")   # for the admin panel
     (OUT / "data" / "talks-latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=1), encoding="utf-8")
 
-    print(f"Built {len(sources)} page(s), {len(posts)} of them blog posts and {len(jobs)} job pages, into {OUT.relative_to(ROOT)}/")
+    print(f"Built {len(sources)} page(s), {len(posts)} of them blog posts and {len(jobs)} job pages, plus {redirects} redirect(s) from old addresses, into {OUT.relative_to(ROOT)}/")
 
 
 if __name__ == "__main__":

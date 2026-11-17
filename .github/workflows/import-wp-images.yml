@@ -1,0 +1,31 @@
+name: Import WordPress images (one-off)
+
+# Downloads the Atlean Talks images from the WordPress site into wp-content/uploads/
+# and commits them to this branch. Remove this file once the images are in.
+
+on:
+  push:
+    branches: [claude/project-thread-6xonxk]
+    paths: [".github/workflows/import-wp-images.yml", "tools/import_wp_images.py"]
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - run: python tools/import_wp_images.py
+      - name: Commit the images
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add wp-content
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlean Talks: images from the WordPress site"
+          git push

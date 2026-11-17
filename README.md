@@ -24,6 +24,10 @@ In a page, `<!-- include:header -->` and `<!-- include:footer -->` insert the sh
 
 Atlean Talks: build.py reads the posts from `data/posts.json` (later from Supabase), writes the list into `/atleantalks/` and one page per post at its old WordPress address.
 
+Old WordPress addresses: `data/redirects.json` maps old addresses that still get Google traffic (from the Search Console export of November 2026) to their new page. Old job ads go to Open Jobs, filtered by language when the old address names one. `build.py` turns each entry into a small page that forwards the visitor, because GitHub Pages can't do server redirects. Addresses that aren't listed are caught by rules in `404.html` (`/jobs/…`, `/job-location/…`, `/category/…`, `/tag/…`, `/author/…`). Blog posts kept their addresses, so they need no redirect.
+
+Blog images from WordPress live in `wp-content/uploads/` at their old paths, so `https://atleanworld.com/wp-content/uploads/…` keeps working after the switch (`tools/import_wp_images.py`).
+
 Page not found: `src/pages/404.html` (styles in `assets/css/404.css`). GitHub Pages shows it for any address that doesn't exist; `static/.htaccess` does the same on an Apache/cPanel host. Because it can appear at any depth, its links are absolute, built from `SITE_BASE` (set automatically by the Pages workflow).
 
 Preview locally: `python build.py --serve`, then open http://localhost:8000.

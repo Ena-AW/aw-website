@@ -74,6 +74,20 @@
 </main>
 
 <script>
+  // Old WordPress addresses that aren't in data/redirects.json: send them to the
+  // closest page (old job ads -> open jobs, old blog lists -> Atlean Talks).
+  (function () {
+    var base = '{{root}}';
+    var path = location.pathname;
+    if (path.indexOf(base) !== 0) return;
+    var parts = path.slice(base.length).replace(/\/+$/, '').split('/');
+    var first = parts[0], to = null;
+    if (/^(jobs|job-location|category|language|careers|work-model|job-type|industry)$/.test(first)) to = 'open-jobs/';
+    else if (/^(author|tag|feed|page)$/.test(first) || (first === 'atleantalks' && parts.length > 1)) to = 'atleantalks/';
+    if (first === 'job-location' && parts[1]) to = 'open-jobs/?job__location_spec=' + encodeURIComponent(parts[1]);
+    if (to) location.replace(base + to);
+  })();
+
   // Show the address that wasn't found (as text, never as HTML).
   (function () {
     var box = document.querySelector('.aw-404__path');
