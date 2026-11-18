@@ -15,14 +15,15 @@
   var NETS = {
     instagram: { name: 'Instagram', limit: 2200, tags: 30, formats: ['post', 'carousel', 'reel', 'story'] },
     facebook:  { name: 'Facebook',  limit: 63206,          formats: ['post', 'carousel', 'reel', 'story'] },
-    linkedin:  { name: 'LinkedIn',  limit: 3000,           formats: ['post', 'carousel', 'reel'] }
+    linkedin:  { name: 'LinkedIn',  limit: 3000,           formats: ['post', 'carousel', 'reel'] },
+    tiktok:    { name: 'TikTok',    limit: 2200,           formats: ['post', 'carousel', 'reel'] }
   };
-  var ORDER = ['instagram', 'facebook', 'linkedin'];
+  var ORDER = ['instagram', 'facebook', 'linkedin', 'tiktok'];
   var FORMATS = {
     post:     { name: 'Post',     hint: 'One photo or video with a caption. Facebook and LinkedIn can also post text only.' },
-    carousel: { name: 'Carousel', hint: '2 to 10 photos or videos people swipe through.' },
-    reel:     { name: 'Reel',     hint: 'One vertical video (9:16), up to 90 seconds. On LinkedIn it goes out as a video post.' },
-    story:    { name: 'Story',    hint: 'One vertical photo or video (9:16). Disappears after 24 hours. Stories have no caption. Not available on LinkedIn.' }
+    carousel: { name: 'Carousel', hint: '2 to 10 photos or videos people swipe through. On TikTok it becomes a photo post (photos only).' },
+    reel:     { name: 'Reel',     hint: 'One vertical video (9:16), up to 90 seconds. On LinkedIn it goes out as a video post, on TikTok as a TikTok video.' },
+    story:    { name: 'Story',    hint: 'One vertical photo or video (9:16). Disappears after 24 hours. Use “Design story” to add text, stickers and a link. Not available on LinkedIn or TikTok.' }
   };
   var STATUS = {
     draft: 'Draft', scheduled: 'Scheduled', publishing: 'Publishing', published: 'Published', failed: 'Failed'
@@ -31,7 +32,8 @@
   var ICON = {
     instagram: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
     facebook: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M14 8h3V4h-3c-2.8 0-5 2.2-5 5v2H7v4h2v7h4v-7h3l1-4h-4V9c0-.6.4-1 1-1z"/></svg>',
-    linkedin: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.1c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4z"/></svg>'
+    linkedin: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.1c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4z"/></svg>',
+    tiktok: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.3 1.9 3.9 4.4 4.1v3.3c-1.6.1-3-.4-4.4-1.3v6.2c0 3.9-3 6.7-6.6 6.7A6.6 6.6 0 0 1 3.4 15.3c0-3.9 3.3-6.9 7.3-6.5v3.5c-.4-.1-.8-.2-1.2-.2-1.7 0-3 1.4-2.9 3.1.1 1.6 1.4 2.8 3 2.8 1.7 0 3-1.3 3-3.1V3z"/></svg>'
   };
   function netIcons(list) {
     return '<span class="soc-nets">' + (list || []).map(function (n) {
@@ -73,7 +75,7 @@
 
   // ------------------------------------------------------------------ shell with sub-tabs
   function socialView(view) {
-    var sub = location.hash.split('/')[1] || (window.matchMedia('(max-width: 40rem)').matches ? 'list' : 'calendar');
+    var sub = (location.hash.split('/')[1] || '').split('?')[0] || (window.matchMedia('(max-width: 40rem)').matches ? 'list' : 'calendar');
     if (sub === 'post') return composer(view, decodeURIComponent(location.hash.split('/')[2] || 'new'));
     view.innerHTML =
       '<div class="adm-head"><h1>Social media</h1><a class="adm-btn" href="#social/post/new">New post</a></div>' +
@@ -193,7 +195,12 @@
   }
   function accounts(body) {
     var isAdmin = A.me().role === 'admin';
-    body.innerHTML = '<div class="soc-accounts"></div><p class="adm-small soc-accounts__note">Facebook and Instagram connect through the Meta system user token saved in Supabase. Scheduled posts go out within 5 minutes of their time. LinkedIn is not connected yet: posts for it are kept and the other networks still go out.</p>';
+    body.innerHTML = '<div class="soc-accounts"></div><p class="adm-small soc-accounts__note">Scheduled posts go out within 5 minutes of their time. Facebook and Instagram connect through the Meta token saved in Supabase; LinkedIn and TikTok open their own sign-in page. If a network isn’t connected, its part of a post is skipped and the others still go out.</p>';
+    // coming back from the LinkedIn or TikTok sign-in page
+    var q = new URLSearchParams((location.hash.split('?')[1] || ''));
+    if (q.get('connected')) A.toast('Connected ' + (NETS[q.get('connected')] ? NETS[q.get('connected')].name : q.get('connected')) + (q.get('name') ? ' (' + q.get('name') + ')' : '') + '.', 'ok');
+    if (q.get('error')) A.toast(q.get('error'), 'error');
+    if (q.get('connected') || q.get('error')) history.replaceState(null, '', location.pathname + location.search + '#social/accounts');
     sb.from('social_accounts').select('*').then(function (res) {
       var rows = res.data || [];
       $('.soc-accounts', body).innerHTML = ORDER.map(function (n) {
@@ -201,21 +208,30 @@
         var on = acc && acc.status === 'connected';
         var desc = n === 'instagram' ? 'Instagram professional (business) account linked to the Facebook Page.'
           : n === 'facebook' ? 'The Atlean World Facebook Page, through Meta Business.'
-          : 'The Atlean World LinkedIn company page.';
+          : n === 'linkedin' ? 'The Atlean World LinkedIn company page. Sign in with a LinkedIn profile that is an admin of the page.'
+          : 'The Atlean World TikTok account (Business or Creator). Until TikTok approves the app, posts go out as private.';
         return '<section class="adm-card soc-acc">' +
           '<span class="soc-net soc-net--' + n + ' soc-net--lg">' + ICON[n] + '</span>' +
           '<div class="soc-acc__main"><h2>' + NETS[n].name + '</h2>' +
             '<p class="adm-small">' + (on ? 'Connected as <strong>' + esc(acc.name || acc.handle) + '</strong>' : desc) + '</p></div>' +
-          (on ? '<span class="adm-pill adm-pill--published">Connected</span>' + (isAdmin && n !== 'linkedin' ? '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-disconnect>Disconnect</button>' : '')
-              : acc && acc.status === 'expired' ? '<span class="adm-pill adm-pill--closed">Needs reconnecting</span>'
+          (on ? '<span class="adm-pill adm-pill--published">Connected</span>' + (isAdmin ? '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-disconnect="' + n + '">Disconnect</button>' : '')
+              : acc && acc.status === 'expired' ? '<span class="adm-pill adm-pill--closed">Needs reconnecting</span><button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-connect="' + n + '"' + (isAdmin ? '' : ' disabled') + '>Reconnect</button>'
               : '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-connect="' + n + '"' + (isAdmin ? '' : ' disabled title="Only admins can connect accounts"') + '>Connect</button>') +
         '</section>';
       }).join('');
       $$('[data-connect]', body).forEach(function (b) {
         b.addEventListener('click', function () {
           var n = b.dataset.connect;
-          if (n === 'linkedin') return A.toast('LinkedIn is not connected yet. Posts you schedule for it are kept.');
           A.busy(b, true);
+          if (n === 'linkedin' || n === 'tiktok') {
+            sb.functions.invoke('social-oauth', { body: { platform: n, return_to: location.origin + location.pathname } }).then(function (res) {
+              A.busy(b, false);
+              if (res.error) return fnError(res.error);
+              A.setDirty(false);
+              location.href = res.data.url;     // LinkedIn or TikTok sign-in; it sends us back here
+            });
+            return;
+          }
           sb.functions.invoke('social-publish', { body: { action: 'connect' } }).then(function (res) {
             A.busy(b, false);
             if (res.error) return fnError(res.error);
@@ -227,9 +243,10 @@
       });
       $$('[data-disconnect]', body).forEach(function (b) {
         b.addEventListener('click', function () {
-          A.confirmDialog('Disconnect Facebook and Instagram?', 'Scheduled posts wait until they are connected again.').then(function (ok) {
+          var n = b.dataset.disconnect, meta = n === 'facebook' || n === 'instagram';
+          A.confirmDialog(meta ? 'Disconnect Facebook and Instagram?' : 'Disconnect ' + NETS[n].name + '?', 'Scheduled posts for it are skipped until it is connected again.').then(function (ok) {
             if (!ok) return;
-            sb.functions.invoke('social-publish', { body: { action: 'disconnect' } }).then(function (res) {
+            sb.functions.invoke('social-publish', { body: { action: 'disconnect', platform: meta ? 'meta' : n } }).then(function (res) {
               if (res.error) return fnError(res.error);
               accounts(body);
             });
@@ -280,8 +297,10 @@
 
           '<section class="adm-card">' +
             '<div class="adm-card__head"><h2>Photos and videos</h2>' +
-              '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-add-media>Add from media library</button></div>' +
+              '<span class="soc-media__actions"><button type="button" class="adm-btn adm-btn--sm" data-design hidden>Design story</button>' +
+              '<button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" data-add-media>Add from media library</button></span></div>' +
             '<ul class="soc-media" data-media></ul>' +
+            '<div data-storylink></div>' +
           '</section>' +
 
           '<section class="adm-card" data-caption-card>' +
@@ -329,6 +348,12 @@
         $('[data-format-hint]', form).textContent = FORMATS[st.format].hint;
         var story = st.format === 'story';
         $('[data-caption-card]', form).hidden = story;
+        var design = $('[data-design]', form), m0 = st.media[0];
+        design.hidden = !story || locked || (m0 && m0.kind === 'video');
+        design.textContent = st.overrides.story ? 'Edit design' : 'Design story';
+        var link = story && st.overrides.story && st.overrides.story.link;
+        $('[data-storylink]', form).innerHTML = link
+          ? '<p class="soc-storylink">🔗 Link sticker: <a href="' + esc(link.url) + '" target="_blank" rel="noopener">' + esc(link.url) + '</a></p>' : '';
       }
 
       function drawMedia() {
@@ -369,6 +394,7 @@
             '<h3><span class="soc-net soc-net--' + n + '">' + ICON[n] + '</span>' + NETS[n].name + '</h3>' +
             '<label class="adm-field"><span>Caption for ' + NETS[n].name + ' <small>(empty = same as above)</small></span><textarea rows="4" data-ov="' + n + '" data-key="caption">' + esc(o.caption || '') + '</textarea></label>' +
             (n === 'instagram' ? '<label class="adm-field"><span>First comment <small>(good place for hashtags)</small></span><textarea rows="2" data-ov="instagram" data-key="first_comment">' + esc(o.first_comment || '') + '</textarea></label>' : '') +
+            (n === 'tiktok' ? '<p class="adm-small">For photo posts TikTok uses the first line as the title (90 characters) and the rest as the description.</p>' : '') +
           '</div>';
         }).join('') || '<p class="adm-small">Choose at least one network.</p>';
       }
@@ -382,6 +408,10 @@
         if (st.format === 'story' && m.length !== 1) out.push('A story needs exactly one photo or video.');
         if (st.format === 'post' && m.length > 1) out.push('A post takes one photo or video. Switch to Carousel for more.');
         if (st.format === 'post' && !m.length && nets().indexOf('instagram') !== -1) out.push('Instagram needs a photo or video.');
+        if (nets().indexOf('tiktok') !== -1) {
+          if (!m.length) out.push('TikTok needs a video or photos.');
+          else if (videos && m.length > 1) out.push('TikTok takes one video, or photos only. Remove the video or the photos.');
+        }
         if (st.format !== 'story') nets().forEach(function (n) {
           var text = captionFor(n);
           if ([...text].length > NETS[n].limit) out.push(NETS[n].name + ': caption is too long.');
@@ -416,12 +446,17 @@
         var box = $('[data-preview]', form);
         if (!st.preview) { box.innerHTML = ''; return; }
         var n = st.preview, m = st.media[0], text = st.format === 'story' ? '' : captionFor(n);
-        var tall = st.format === 'story' || st.format === 'reel';
+        var tall = st.format === 'story' || st.format === 'reel' || n === 'tiktok';
         var media = m ? (m.kind === 'video'
             ? '<video src="' + esc(m.url) + '#t=0.5" muted playsinline preload="metadata"></video>'
             : '<img src="' + esc(m.url) + '" alt="">') : '';
         var dots = st.media.length > 1 ? '<span class="pv-dots">' + st.media.map(function (_, i) { return '<i' + (i === 0 ? ' class="on"' : '') + '></i>'; }).join('') + '</span>' : '';
-        var name = n === 'instagram' ? 'atleanworld' : 'Atlean World';
+        var name = n === 'instagram' || n === 'tiktok' ? 'atleanworld' : 'Atlean World';
+        if (n === 'tiktok') {
+          box.innerHTML = '<div class="pv pv--tiktok pv--tall"><div class="pv__media">' + (media || '<div class="pv__media--empty">Add a video or photos</div>') + dots +
+            '<div class="pv__tt"><b>@' + name + '</b><p>' + esc(text) + '</p></div></div></div>';
+          return;
+        }
         box.innerHTML =
           '<div class="pv pv--' + n + (tall ? ' pv--tall' : '') + '">' +
             '<div class="pv__head"><span class="pv__avatar"><img src="' + esc(A.SITE + 'media/brand/favicon.png') + '" alt=""></span><span><b>' + name + '</b>' + (n === 'linkedin' ? '<small>Recruitment · Promoted by you</small>' : '') + '</span></div>' +
@@ -448,6 +483,17 @@
           if (t.dataset.when === 'schedule' && !form.day.value) form.day.value = dayKey(new Date(Date.now() + 86400000));
         } else if (t.dataset.pv) {
           st.preview = t.dataset.pv; drawPreview(); return;
+        } else if (t.hasAttribute('data-design')) {
+          var cur = st.overrides.story || {};
+          window.AWStory.open({ media: st.media[0], design: cur.design }).then(function (out) {
+            if (!out) return;
+            var alt = (st.media[0] && st.media[0].alt) || '';
+            st.media = [{ url: out.url, kind: 'image', alt: alt }];
+            st.overrides.story = { design: out.design, link: out.link };
+            if (!out.link) delete st.overrides.story.link;
+            A.setDirty(true); drawAll();
+          });
+          return;
         } else if (t.hasAttribute('data-add-media')) {
           A.pickMedia({ title: 'Add photos and videos', folder: 'social', kinds: ['image', 'video'], multiple: true }).then(function (files) {
             if (!files.length) return;
